@@ -11,7 +11,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-//#include "../lib/libutils.a"
+#include <libutils.a>
 
 int main(void) {
 	printf("Hello\n");
