@@ -17,6 +17,20 @@
 
 
 int main(void) {
-	printf("Hello\n");
+	webpage_t *webpage;
+	char *url;
+
+	url = "https://thayer.github.io/engs50/";
+		
+	webpage = webpage_new(url, 0, NULL); 
+
+	if(webpage_fetch(webpage)) {
+		char *html = webpage_getHTML(webpage);
+		printf("Found html: %s\n", html);
+		exit(EXIT_SUCCESS); 
+	}
+	exit(EXIT_FAILURE); 
+	
+	webpage_delete(webpage); 
 	exit(EXIT_SUCCESS);
 }
