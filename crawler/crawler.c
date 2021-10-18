@@ -11,7 +11,10 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <libutils.a>
+#include <queue.h>
+#include <hash.h>
+#include <webpage.h>
+
 
 int main(void) {
 	printf("Hello\n");
