@@ -17,7 +17,7 @@
 #include <webpage.h>
 
 void printurl(void* pagep) {
-	printf("%s\n", webpage_getURL((webpage_t*)pagep));
+	printf("%s-->", webpage_getURL((webpage_t*)pagep));
 }
 
 int main(void) {
@@ -49,6 +49,7 @@ int main(void) {
 	}
 
 	qapply(urls_to_visit_qp, printurl);
+	webpage_delete(tmp_webpage);
 	qclose(urls_to_visit_qp);
 	
 	webpage_delete(webpage);
