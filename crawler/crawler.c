@@ -17,7 +17,7 @@
 #include <webpage.h>
 
 void printurl(void* pagep) {
-	printf("%s-->", webpage_getURL((webpage_t*)pagep));
+	printf("%s-->\n", webpage_getURL((webpage_t*)pagep));
 }
 
 int main(void) {
@@ -37,7 +37,8 @@ int main(void) {
 	}
 
 	urls_to_visit_qp = qopen();
-		while ((pos = webpage_getNextURL(webpage, pos, &result)) > 0) {
+	
+	while ((pos = webpage_getNextURL(webpage, pos, &result)) > 0) {
 		if(IsInternalURL(result)) {
 			printf("[INTERNAL]: %s\n", result);
 			tmp_webpage = webpage_new(result, 0, NULL);
@@ -47,9 +48,9 @@ int main(void) {
 		}
 		free(result);
 	}
-
+	
 	qapply(urls_to_visit_qp, printurl);
-	webpage_delete(tmp_webpage);
+	qapply(urls_to_visit_qp, webpage_delete);
 	qclose(urls_to_visit_qp);
 	
 	webpage_delete(webpage);
