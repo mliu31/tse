@@ -48,11 +48,9 @@ int main(void) {
 		free(result);
 	}
 
-	
-	
 	qapply(urls_to_visit_qp, printurl);
 	qclose(urls_to_visit_qp);
 	
-	webpage_delete(webpage); 
+	webpage_delete(webpage);
 	exit(EXIT_SUCCESS);
 }
