@@ -16,13 +16,17 @@
 #include <hash.h>
 #include <webpage.h>
 
+void printurl(void* pagep) {
+	webpage_t *webpagep; 
+	printf("%s-->", ((webpage_t*)pagep)->url));
+}
 
 int main(void) {
-	webpage_t *webpage;
+	webpage_t *webpage, *tmp_webpage;
 	char *url;
 	int pos = 0;
 	char *result;
-	char *strstr_res;
+	queue_t *urls_to_visit_qp;
 	
 	url = "https://thayer.github.io/engs50/";
 		
@@ -33,16 +37,22 @@ int main(void) {
 		//		printf("Found html: %s\n", html);
 	}
 
-	while ((pos = webpage_getNextURL(webpage, pos, &result)) > 0) {
-		strstr_res = strstr(result, url);
-		if(strstr_res != NULL) {
+	urls_to_visit_qp = qopen();
+		while ((pos = webpage_getNextURL(webpage, pos, &result)) > 0) {
+		if(IsInternalURL(result)) {
 			printf("[INTERNAL]: %s\n", result);
+			tmp_webpage = webpage_new(result, 0, NULL);
+			qput(urls_to_visit_qp, tmp_webpage); 
 		} else {
 			printf("[EXTERNAL]: %s\n", result);		
 		}
 		free(result);
 	}
-	 
+
+	
+	
+	qapply(urls_to_visit_qp, printurl);
+	qclose(urls_to_visit_qp);
 	
 	webpage_delete(webpage); 
 	exit(EXIT_SUCCESS);
