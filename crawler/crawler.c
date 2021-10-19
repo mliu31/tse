@@ -60,9 +60,9 @@ int main(void) {
 
 	//pagesave(webpage, 1, "../pages/");
 
-	if(webpage_fetch(webpage)) {
-		char *html = webpage_getHTML(webpage);
-		//		printf("Found html: %s\n", html);
+	if(!webpage_fetch(webpage)) {
+		printf("Webpage failed to fetch");
+		exit(EXIT_FAILURE); 
 	}
 
 	urls_to_visit_qp = qopen();
