@@ -31,6 +31,19 @@ bool search(void* elementp, const void* searchkeyp) {
 	return false;
 	
 }
+/*
+int32_t pagesave(webpage_t *pagep, int id, char *dirname) {
+
+	FILE *fp;
+	char *path = "../pages/";
+	char *name;
+	
+	sprintf(name, "%d", id);
+	
+	fp = fopen(strcat(path,name), "w+"); 
+
+	return 0;
+	}*/
 
 int main(void) {
 	webpage_t *webpage, *tmp_webpage;
@@ -43,7 +56,9 @@ int main(void) {
 	
 	url = "https://thayer.github.io/engs50/";
 		
-	webpage = webpage_new(url, 0, NULL); 
+	webpage = webpage_new(url, 0, NULL);
+
+	//pagesave(webpage, 1, "../pages/");
 
 	if(webpage_fetch(webpage)) {
 		char *html = webpage_getHTML(webpage);
