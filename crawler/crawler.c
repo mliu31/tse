@@ -17,8 +17,7 @@
 #include <webpage.h>
 
 void printurl(void* pagep) {
-	webpage_t *webpagep; 
-	printf("%s-->", ((webpage_t*)pagep)->url));
+	printf("%s\n", webpage_getURL((webpage_t*)pagep));
 }
 
 int main(void) {
