@@ -69,8 +69,7 @@ int main(void) {
 	queue_t *urls_to_visit_qp;
 	hashtable_t *visited_urls_htp;
 	char* visited_url;
-	int id = 1;
-	
+	int id = 1, counter = 0; 
 	seedurl = "https://thayer.github.io/engs50/";
 	directory = "../pages/";
 	maxdepth = 2;
@@ -86,25 +85,34 @@ int main(void) {
 	while(webpage = qget(urls_to_visit_qp)) {
 
 		if(!webpage_fetch(webpage)) {
-			printf("Webpage failed to fetch");
-			exit(EXIT_FAILURE); 
+			printf("Failed to fetch webpage: %s\n", webpage_getURL(webpage));
+			continue; 
 		}
 
-		//pagesave(webpage, id, directory);
-
+		if(hsearch(visited_urls_htp, search, webpage_getURL(webpage), strlen(webpage_getURL(webpage))) == NULL) {
+			pagesave(webpage, id, directory);
+			id = id + 1;
+		}
 		if(webpage_getDepth(webpage) < maxdepth) {
 			depth = webpage_getDepth(webpage) + 1;
 
 			while ((pos = webpage_getNextURL(webpage, pos, &result)) > 0) {
-				if(IsInternalURL(result)) {					
+				if(IsInternalURL(result)) {
+					//visited_url = NULL;
+					//visited_url = (char*)malloc(200*sizeof(char));
 					tmp_webpage = webpage_new(result, depth, NULL);
 					// visited_url = webpage_getURL(tmp_webpage);
 
-					printf("    result: %s; %s\n", result, webpage_getURL(tmp_webpage)); //, visited_url);
+					// printf("    result: %s; %s\n", result, webpage_getURL(tmp_webpage)); //, visited_url);
+
+					strcpy(visited_url, webpage_getURL(tmp_webpage));
 					
-					if(hsearch(visited_urls_htp, search, webpage_getURL(tmp_webpage), strlen(webpage_getURL(tmp_webpage))) == NULL) {
-						hput(visited_urls_htp, webpage_getURL(tmp_webpage), webpage_getURL(tmp_webpage), strlen(webpage_getURL(tmp_webpage)));
+					if(hsearch(visited_urls_htp, search, visited_url, strlen(visited_url)) == NULL) {
+						hput(visited_urls_htp, visited_url, visited_url, strlen(visited_url));
 						qput(urls_to_visit_qp, tmp_webpage);
+						counter = counter + 1;
+						printf("counter: %d\n", counter);
+						
 					} else free(tmp_webpage);
 					
 
@@ -118,11 +126,11 @@ int main(void) {
 		printf("depth after increment: %d\n", depth);
 		
 		pos = 0;
-
+		printf("***********************\n"); 
 		qapply(urls_to_visit_qp, printurl);
+		printf("***********************\n"); 
 		//qapply(urls_to_visit_qp, webpage_delete);
 		
-		id = id + 1;
 
 		webpage_delete(webpage);
 		
