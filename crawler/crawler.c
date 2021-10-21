@@ -96,22 +96,22 @@ int main(void) {
 			depth = webpage_getDepth(webpage) + 1;
 
 			while ((pos = webpage_getNextURL(webpage, pos, &result)) > 0) {
-				if(IsInternalURL(result)) {
+				if(IsInternalURL(result)) {					
 					tmp_webpage = webpage_new(result, depth, NULL);
-					visited_url = webpage_getURL(tmp_webpage);
-			
-					if(hsearch(visited_urls_htp, search, visited_url, strlen(visited_url)) == NULL) {
-						hput(visited_urls_htp, visited_url, visited_url, strlen(visited_url));
+					// visited_url = webpage_getURL(tmp_webpage);
+
+					printf("    result: %s; %s\n", result, webpage_getURL(tmp_webpage)); //, visited_url);
+					
+					if(hsearch(visited_urls_htp, search, webpage_getURL(tmp_webpage), strlen(webpage_getURL(tmp_webpage))) == NULL) {
+						hput(visited_urls_htp, webpage_getURL(tmp_webpage), webpage_getURL(tmp_webpage), strlen(webpage_getURL(tmp_webpage)));
 						qput(urls_to_visit_qp, tmp_webpage);
 					} else free(tmp_webpage);
 					
 
 				}
 				free(result);
-				//free(tmp_webpage);
-
 			}
-			free(visited_url);			
+			// free(visited_url);			
 		}
 
 		
