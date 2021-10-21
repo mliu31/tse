@@ -59,77 +59,31 @@ int32_t pagesave(webpage_t *pagep, int id, char *dirname) {
 }
 
 int main(void) {
-	webpage_t *rootpage, *tmp_webpage, *webpage;
-	char *seedurl, *url;
+	webpage_t *webpage, *tmp_webpage;
+	char *url;
 	int pos = 0;
-	int depth = 0;
-	int maxdepth;
 	char *result;
-	char* directory;
 	queue_t *urls_to_visit_qp;
 	hashtable_t *visited_urls_htp;
 	char* visited_url;
-	int id = 1;
 	
-	seedurl = "https://thayer.github.io/engs50/";
-	directory = "../pages/";
-	maxdepth = 2;
+	url = "https://thayer.github.io/engs50/";
+		
+	webpage = webpage_new(url, 0, NULL);
 
-	rootpage = webpage_new(seedurl, depth, NULL);
+	if(!webpage_fetch(webpage)) {
+		printf("Webpage failed to fetch");
+		exit(EXIT_FAILURE); 
+	}
+
+	pagesave(webpage, 1, "../pages/");
 
 	urls_to_visit_qp = qopen();
 	visited_urls_htp = hopen(10);
-
-	hput(visited_urls_htp, seedurl, seedurl, strlen(seedurl));
-	qput(urls_to_visit_qp, rootpage);
-
-	while(webpage = qget(urls_to_visit_qp)) {
-
-		if(!webpage_fetch(webpage)) {
-			printf("Webpage failed to fetch");
-			exit(EXIT_FAILURE); 
-		}
-
-		//pagesave(webpage, id, directory);
-
-		if(webpage_getDepth(webpage) < maxdepth) {
-			depth = webpage_getDepth(webpage) + 1;
-
-			while ((pos = webpage_getNextURL(webpage, pos, &result)) > 0) {
-				if(IsInternalURL(result)) {
-					tmp_webpage = webpage_new(result, depth, NULL);
-					visited_url = webpage_getURL(tmp_webpage);
-			
-					if(hsearch(visited_urls_htp, search, visited_url, strlen(visited_url)) == NULL) {
-						hput(visited_urls_htp, visited_url, visited_url, strlen(visited_url));
-						qput(urls_to_visit_qp, tmp_webpage);
-					} else free(tmp_webpage);
-					
-
-				}
-				free(result);
-				//free(tmp_webpage);
-
-			}
-			free(visited_url);			
-		}
-
-		
-		printf("depth after increment: %d\n", depth);
-		
-		pos = 0;
-
-		qapply(urls_to_visit_qp, printurl);
-		//qapply(urls_to_visit_qp, webpage_delete);
-		
-		id = id + 1;
-
-		webpage_delete(webpage);
-		
-	}
-	/*	
+	
 	while ((pos = webpage_getNextURL(webpage, pos, &result)) > 0) {
 		if(IsInternalURL(result)) {
+			//printf("[INTERNAL]: %s\n", result);
 			tmp_webpage = webpage_new(result, 0, NULL);
 			visited_url = webpage_getURL(tmp_webpage);
 			
@@ -138,19 +92,18 @@ int main(void) {
 				qput(urls_to_visit_qp, tmp_webpage);
 			} else free(tmp_webpage);
 
-		}
+		}/* else {
+			printf("[EXTERNAL]: %s\n", result);		
+			}*/
 		free(result);
-		}
+	}
 
 	free(visited_url);
-	*/
-	if(qget(urls_to_visit_qp) != NULL) {
-
-		printf("queue not empty\n");
-
-	}
+	qapply(urls_to_visit_qp, printurl);
+	qapply(urls_to_visit_qp, webpage_delete);
 	qclose(urls_to_visit_qp);
 	hclose(visited_urls_htp);
- 
+	
+	webpage_delete(webpage);
 	exit(EXIT_SUCCESS);
 }
