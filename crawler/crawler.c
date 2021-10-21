@@ -31,19 +31,32 @@ bool search(void* elementp, const void* searchkeyp) {
 	return false;
 	
 }
-/*
+
 int32_t pagesave(webpage_t *pagep, int id, char *dirname) {
 
 	FILE *fp;
-	char *path = "../pages/";
-	char *name;
-	
+	char path[64];
+	char name[64];
+
+	char depth[64];
+	char htmllen[64];
+	char *url = webpage_getURL(pagep);
+	char *html = webpage_getHTML(pagep);
+
+	strcpy(path, dirname);	
 	sprintf(name, "%d", id);
 	
-	fp = fopen(strcat(path,name), "w+"); 
+	sprintf(depth, "%d", webpage_getDepth(pagep));
+	sprintf(htmllen, "%d", webpage_getHTMLlen(pagep));
+	
+	fp = fopen(strcat(path,name), "w+");
 
+	fprintf(fp, "%s\n%s\n%s\n%s\n", url, depth, htmllen, html);
+	
+	fclose(fp);
+	
 	return 0;
-	}*/
+}
 
 int main(void) {
 	webpage_t *webpage, *tmp_webpage;
@@ -58,12 +71,12 @@ int main(void) {
 		
 	webpage = webpage_new(url, 0, NULL);
 
-	//pagesave(webpage, 1, "../pages/");
-
 	if(!webpage_fetch(webpage)) {
 		printf("Webpage failed to fetch");
 		exit(EXIT_FAILURE); 
 	}
+
+	pagesave(webpage, 1, "../pages/");
 
 	urls_to_visit_qp = qopen();
 	visited_urls_htp = hopen(10);
