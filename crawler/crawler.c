@@ -73,7 +73,7 @@ int main(void) {
 	
 	seedurl = "https://thayer.github.io/engs50/";
 	directory = "../pages/";
-	maxdepth = 2;
+	maxdepth = 1;
 
 	rootpage = webpage_new(seedurl, depth, NULL);
 
@@ -83,6 +83,8 @@ int main(void) {
 	hput(visited_urls_htp, seedurl, seedurl, strlen(seedurl));
 	qput(urls_to_visit_qp, rootpage);
 
+
+	
 	while(webpage = qget(urls_to_visit_qp)) {
 
 		if(!webpage_fetch(webpage)) {
@@ -96,8 +98,9 @@ int main(void) {
 			depth = webpage_getDepth(webpage) + 1;
 
 			while ((pos = webpage_getNextURL(webpage, pos, &result)) > 0) {
-				if(IsInternalURL(result)) {					
+				if(IsInternalURL(result)) {
 					tmp_webpage = webpage_new(result, depth, NULL);
+					
 					// visited_url = webpage_getURL(tmp_webpage);
 
 					printf("    result: %s; %s\n", result, webpage_getURL(tmp_webpage)); //, visited_url);
@@ -105,11 +108,15 @@ int main(void) {
 					if(hsearch(visited_urls_htp, search, webpage_getURL(tmp_webpage), strlen(webpage_getURL(tmp_webpage))) == NULL) {
 						hput(visited_urls_htp, webpage_getURL(tmp_webpage), webpage_getURL(tmp_webpage), strlen(webpage_getURL(tmp_webpage)));
 						qput(urls_to_visit_qp, tmp_webpage);
-					} else free(tmp_webpage);
-					
+					} else {
+						webpage_delete(tmp_webpage);
+						
+					}
 
 				}
 				free(result);
+			
+			
 			}
 			// free(visited_url);			
 		}
@@ -125,6 +132,8 @@ int main(void) {
 		id = id + 1;
 
 		webpage_delete(webpage);
+	
+	
 		
 	}
 	/*	
