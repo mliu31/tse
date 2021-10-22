@@ -58,6 +58,14 @@ int32_t pagesave(webpage_t *pagep, int id, char *dirname) {
 	return 0;
 }
 
+void freefunction(void *freed) {
+
+	char *thing = (char*)freed;
+	if(thing != NULL) {
+		free(thing);
+	}
+
+}
 
 int main(void) {
 	webpage_t *rootpage, *tmp_webpage, *webpage;
@@ -69,15 +77,19 @@ int main(void) {
 
 	seedurl = "https://thayer.github.io/engs50/";
 	directory = "../pages/";
-	maxdepth = 2;
+	maxdepth = 1;
 
 	rootpage = webpage_new(seedurl, depth, NULL);
 
 	urls_to_visit_qp = qopen();
 	visited_urls_htp = hopen(10);
 
+	visited_url = NULL;
+	visited_url = (char*)calloc(200, sizeof(char));
+	strcpy(visited_url, seedurl);
+	
 	qput(urls_to_visit_qp, rootpage);
-	hput(visited_urls_htp, seedurl, seedurl, strlen(seedurl));
+	hput(visited_urls_htp, visited_url, visited_url, strlen(visited_url));
 
 	while((webpage = qget(urls_to_visit_qp))) {
 		if(!webpage_fetch(webpage)) {
@@ -97,9 +109,8 @@ int main(void) {
 				if(IsInternalURL(result)) {
 					tmp_webpage = webpage_new(result, depth, NULL);					
 
-					// visited_url = NULL;
-					//visited_url = (char*)malloc(200*sizeof(char));
-					visited_url = webpage_getURL(tmp_webpage);  // need to initialize but should be overwritten by strcpy (shouldn't matter anyway) -- or does it overwrite what's at that address for the webpage URL? 
+					visited_url = NULL;
+					visited_url = (char*)calloc(200, sizeof(char));
 					strcpy(visited_url, webpage_getURL(tmp_webpage));
 					
 					/*
@@ -117,6 +128,7 @@ int main(void) {
 						// printf(" %s  ==================== put into queue and hash table\n", webpage_getURL(tmp_webpage));
 					} else {
 						webpage_delete(tmp_webpage);
+						free(visited_url);
 					}
 					
 				}
@@ -135,7 +147,8 @@ int main(void) {
 		
 		webpage_delete(webpage);
 	}
-		
+
+	//happly(visited_urls_htp, freefunction);
 	qclose(urls_to_visit_qp);
 	hclose(visited_urls_htp);
 
