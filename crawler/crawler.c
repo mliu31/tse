@@ -77,7 +77,7 @@ int main(void) {
 
 	seedurl = "https://thayer.github.io/engs50/";
 	directory = "../pages/";
-	maxdepth = 1;
+	maxdepth = 2;
 
 	rootpage = webpage_new(seedurl, depth, NULL);
 
@@ -111,6 +111,7 @@ int main(void) {
 
 					visited_url = NULL;
 					visited_url = (char*)calloc(200, sizeof(char));
+					// visited_url = (char*)malloc(sizeof(webpage_getURL(tmp_webpage))+1);
 					strcpy(visited_url, webpage_getURL(tmp_webpage));
 					
 					/*
