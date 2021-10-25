@@ -149,7 +149,7 @@ int main(void) {
 		webpage_delete(webpage);
 	}
 
-	//happly(visited_urls_htp, freefunction);
+	happly(visited_urls_htp, freefunction);
 	qclose(urls_to_visit_qp);
 	hclose(visited_urls_htp);
 
