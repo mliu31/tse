@@ -27,6 +27,7 @@ int main(void) {
 
 		pos = webpage_getNextWord(loadedpage, pos, &word);
 		printf("%s\n", word);
+		printf("pos: %d\n", pos);
 
 		free(word);
 

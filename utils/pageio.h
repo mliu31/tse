@@ -16,7 +16,7 @@
 #include <string.h>
 #include <inttypes.h>
 #include <unistd.h>
-#include <webpage.h>
+#include "webpage.h"
 
 /*
  * pagesave -- save the page in filename id in directory dirnm

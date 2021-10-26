@@ -1,0 +1,11 @@
+CFLAGS=-Wall -pedantic -std=c11 -I. -g
+
+all:					pageio.o
+
+
+%.o:					%.c
+							gcc $(CFLAGS) -c $<
+
+
+clean:
+							rm -f *.o *.test #\'*\'

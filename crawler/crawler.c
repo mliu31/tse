@@ -76,8 +76,8 @@ int main(void) {
 	hashtable_t *visited_urls_htp;
 
 	seedurl = "https://thayer.github.io/engs50/";
-	directory = "../pages/";
-	maxdepth = 2;
+	directory = "../pages2/";
+	maxdepth = 1;
 
 	rootpage = webpage_new(seedurl, depth, NULL);
 
