@@ -16,6 +16,8 @@
 #include <hash.h>
 #include <string.h>
 
+int sum = 0;
+
 typedef struct index_t {
 
 	char *word;
@@ -51,6 +53,16 @@ void freeindexentry(void *indexentry) {
 
 	id_t *index_e = (id_t*)(indexentry);
 	free(index_e->word);
+	free(index_e);
+
+}
+
+void sumofindexentries(void *indexentry) {
+
+	id_t *index_e = (id_t*)(indexentry);
+	int *sum_p = &sum;
+	
+	*sum_p = *sum_p + index_e->freq;
 
 }
 
@@ -82,10 +94,10 @@ int NormalizeWord(char **wordptr) {
 }
 
 bool search(void* elementp, const void* searchkeyp) {
-	char *ep = (char*)elementp;
+	id_t *ep = (id_t*)elementp;
 	char *sp = (char*)searchkeyp;
 
-	if(strcmp(ep, sp) == 0) {
+	if(strcmp(ep->word, sp) == 0) {
 		return true;
 	}
 	return false;
@@ -101,7 +113,7 @@ int main(void) {
 
 	loadedpage = pageload(1, "../pages/");
 	hashtable = hopen(20);
-
+	/*
 	webpage_getNextWord(loadedpage, pos, &word);
 
 	indexentry = hsearch(hashtable, search, word, strlen(word));
@@ -109,19 +121,21 @@ int main(void) {
 	if(indexentry == NULL)
 		printf("Correct\n");
 
+	indexentry = makeindexentry(word);
+
 	hput(hashtable, indexentry, word, strlen(word));
 
 	printf("**********\n");
 	happly(hashtable, printindexentry);
-	printf("word: %s\n", word);
+	//printf("word: %s\n", word);
 	printf("**********\n");
 	
 	indexentry = hsearch(hashtable, search, word, strlen(word));
 
-	if(indexentry != NULL)
-		printf("Correct\n");
+	if(indexentry == NULL)
+		printf("Incorrect\n");
+	*/	
 	
-	/*
 	while(true) {
 
 		pos = webpage_getNextWord(loadedpage, pos, &word);
@@ -136,18 +150,21 @@ int main(void) {
 			
 			if(indexentry == NULL) {
 				indexentry = makeindexentry(word);
-				printf("************************\n");
-				printindexentry(indexentry);
-				printf("************************\n");
+				//printf("************************\n");
+				//printindexentry(indexentry);
+				//printf("************************\n");
 				hput(hashtable, indexentry, word, strlen(word));
 			} else {
-				printf("************************\n");
+				//printf("************************\n");
 				incrementindexentry(indexentry);
+				free(word);
 			}
 		}
-		}*/
+	}
 	
-	//happly(hashtable, printindexentry);
+	happly(hashtable, printindexentry);
+	happly(hashtable, sumofindexentries);
+	printf("sum: %d\n", sum);
 	happly(hashtable, freeindexentry);
 	hclose(hashtable);
 	
