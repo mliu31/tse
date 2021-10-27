@@ -22,8 +22,14 @@ int sum = 0;
 
 typedef struct index_entry_t {
 	char *word;
-	int freq;
+	queue_t *word_queue_p; 
 } id_t;
+
+
+typedef struct word_queue_entry_t {
+	int doc_id;
+	int doc_word_freq; 
+} wqe_t; 
 
 
 id_t* makeindexentry(char *word) {
