@@ -13,6 +13,7 @@
 #include <ctype.h>
 #include <pageio.h>
 #include <webpage.h>
+#include <queue.h>
 #include <hash.h>
 #include <string.h>
 
@@ -22,8 +23,9 @@ int sum = 0;
 
 typedef struct index_entry_t {
 	char *word;
+	int freq; // NEED TO REMOVE 
 	queue_t *word_queue_p; 
-} id_t;
+} idxe_t;
 
 
 typedef struct word_queue_entry_t {
@@ -32,8 +34,8 @@ typedef struct word_queue_entry_t {
 } wqe_t; 
 
 
-id_t* makeindexentry(char *word) {
-	id_t* indexentry = malloc(sizeof(id_t));
+idxe_t* makeindexentry(char *word) {
+	idxe_t* indexentry = malloc(sizeof(idxe_t));
 
 	indexentry->word = word;
 	indexentry->freq = 1;
@@ -42,26 +44,26 @@ id_t* makeindexentry(char *word) {
 }
 
 
-void incrementindexentry(id_t *indexentry) {
+void incrementindexentry(idxe_t *indexentry) {
 	indexentry->freq = (indexentry->freq) + 1;
 }
 
 
 void printindexentry(void *indexentry) {
-	id_t *index_e = (id_t*)(indexentry);
+	idxe_t *index_e = (idxe_t*)(indexentry);
 	printf("%s: %d\n", index_e->word, index_e->freq); 
 }
 
 
 void freeindexentry(void *indexentry) {
-	id_t *index_e = (id_t*)(indexentry);
+	idxe_t *index_e = (idxe_t*)(indexentry);
 	free(index_e->word);
 	free(index_e);
 }
 
 
 void sumofindexentries(void *indexentry) {
-	id_t *index_e = (id_t*)(indexentry);
+	idxe_t *index_e = (idxe_t*)(indexentry);
 	int *sum_p = &sum;
 	
 	*sum_p = *sum_p + index_e->freq;
@@ -90,7 +92,7 @@ int NormalizeWord(char **wordptr) {
 
 
 bool search(void* elementp, const void* searchkeyp) {
-	id_t *ep = (id_t*)elementp;
+	idxe_t *ep = (idxe_t*)elementp;
 	char *sp = (char*)searchkeyp;
 
 	if(strcmp(ep->word, sp) == 0) {
@@ -103,7 +105,7 @@ bool search(void* elementp, const void* searchkeyp) {
 int main(void) {
 	webpage_t *loadedpage;
 	hashtable_t *hashtable;
-	id_t *indexentry;
+	idxe_t *indexentry;
 	char *word;
 	int pos = 0;
 
