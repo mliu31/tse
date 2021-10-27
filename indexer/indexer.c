@@ -16,82 +16,72 @@
 #include <hash.h>
 #include <string.h>
 
+
 int sum = 0;
 
-typedef struct index_t {
 
+typedef struct index_entry_t {
 	char *word;
 	int freq;
-
 } id_t;
 
-id_t* makeindexentry(char *word) {
 
+id_t* makeindexentry(char *word) {
 	id_t* indexentry = malloc(sizeof(id_t));
 
 	indexentry->word = word;
 	indexentry->freq = 1;
 
-	return indexentry;
-
+	return indexentry; 
 }
+
 
 void incrementindexentry(id_t *indexentry) {
-
 	indexentry->freq = (indexentry->freq) + 1;
-
 }
+
 
 void printindexentry(void *indexentry) {
-
 	id_t *index_e = (id_t*)(indexentry);
-	printf("word: %s, freq: %d\n", index_e->word, index_e->freq);
-
+	printf("%s: %d\n", index_e->word, index_e->freq); 
 }
 
-void freeindexentry(void *indexentry) {
 
+void freeindexentry(void *indexentry) {
 	id_t *index_e = (id_t*)(indexentry);
 	free(index_e->word);
 	free(index_e);
-
 }
 
-void sumofindexentries(void *indexentry) {
 
+void sumofindexentries(void *indexentry) {
 	id_t *index_e = (id_t*)(indexentry);
 	int *sum_p = &sum;
 	
 	*sum_p = *sum_p + index_e->freq;
-
 }
 
-int NormalizeWord(char **wordptr) {
 
+int NormalizeWord(char **wordptr) {
 	char *word = *wordptr;
 	int i = 0;
 
 	while(word[i] != '\0') {
-		
 		if(isalpha(word[i]) == 0) {
 			free(word);
 			return -1;
 		}
-
 		word[i] = ((char)(((int)tolower(word[i]))));
-
 		i++;
-		
 	}
 
 	if(i < 4) {
 		free(word);
 		return -1;
 	}
-
 	return 0;
-
 }
+
 
 bool search(void* elementp, const void* searchkeyp) {
 	id_t *ep = (id_t*)elementp;
@@ -103,8 +93,8 @@ bool search(void* elementp, const void* searchkeyp) {
 	return false;
 }
 
-int main(void) {
 
+int main(void) {
 	webpage_t *loadedpage;
 	hashtable_t *hashtable;
 	id_t *indexentry;
@@ -113,31 +103,8 @@ int main(void) {
 
 	loadedpage = pageload(1, "../pages/");
 	hashtable = hopen(20);
-	/*
-	webpage_getNextWord(loadedpage, pos, &word);
-
-	indexentry = hsearch(hashtable, search, word, strlen(word));
-
-	if(indexentry == NULL)
-		printf("Correct\n");
-
-	indexentry = makeindexentry(word);
-
-	hput(hashtable, indexentry, word, strlen(word));
-
-	printf("**********\n");
-	happly(hashtable, printindexentry);
-	//printf("word: %s\n", word);
-	printf("**********\n");
-	
-	indexentry = hsearch(hashtable, search, word, strlen(word));
-
-	if(indexentry == NULL)
-		printf("Incorrect\n");
-	*/	
 	
 	while(true) {
-
 		pos = webpage_getNextWord(loadedpage, pos, &word);
 
 		if(pos == -1) {
@@ -145,17 +112,11 @@ int main(void) {
 		}
 		
 		if(NormalizeWord(&word) == 0) {
-			
 			indexentry = hsearch(hashtable, search, word, strlen(word));
-			
 			if(indexentry == NULL) {
 				indexentry = makeindexentry(word);
-				//printf("************************\n");
-				//printindexentry(indexentry);
-				//printf("************************\n");
 				hput(hashtable, indexentry, word, strlen(word));
 			} else {
-				//printf("************************\n");
 				incrementindexentry(indexentry);
 				free(word);
 			}
@@ -165,11 +126,10 @@ int main(void) {
 	happly(hashtable, printindexentry);
 	happly(hashtable, sumofindexentries);
 	printf("sum: %d\n", sum);
+	
 	happly(hashtable, freeindexentry);
 	hclose(hashtable);
-	
 	webpage_delete(loadedpage);
 
 	return 0;
-
 }
