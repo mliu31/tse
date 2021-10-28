@@ -19,6 +19,7 @@
 #include <string.h>
 
 int sum = 0;
+int page_id = 1;
 
 typedef struct index_entry_t {
 	char *word;
@@ -41,10 +42,10 @@ wqe_t* makeQueueEntry(int id) {
 
 }
 
-idxe_t* makeindexentry(char *word, int id) {
+idxe_t* makeindexentry(char *word) {
 
 	idxe_t* indexentry = malloc(sizeof(idxe_t));
-	wqe_t* queue_entry = makeQueueEntry(id);
+	wqe_t* queue_entry = makeQueueEntry(page_id);
 
 	indexentry->word = word;
 	indexentry->word_queue_p = qopen();
@@ -65,16 +66,14 @@ void incrementDocumentFreq(wqe_t *document) {
 void printDocument(void *document) {
 
 	wqe_t *document_el = (wqe_t*)(document);
-	printf("id: %d, freq: %d\n", document_el->doc_id, document_el->doc_word_freq);
+	printf("document id: %d, freq: %d\n", document_el->doc_id, document_el->doc_word_freq);
 
 }
 
-void printindexentry(void *index_e) {
-	//idxe_t *index_e = (idxe_t*)(indexentry);
-	printf("**********\n");
-	printf("word: %s\n", index_e->word);
+void printindexentry(void *indexentry) {
+	idxe_t *index_e = (idxe_t*)(indexentry);
+	printf("word: %s; ", index_e->word);
 	qapply(index_e->word_queue_p, printDocument);
-	printf("**********\n");
 }
 
 void freeDocument(void *document) {
@@ -156,50 +155,42 @@ int main(int argc, char *argv[]) {
 	wqe_t *document;
 	idxe_t *indexentry;
 	char *word;
-	int pos;
+	int pos = 0;
 	char *endid;
 
-	int ending = strtol(argv[1], &endid, 10);
+	int id = strtol(argv[1], &endid);
+
+	loadedpage = pageload(page_id, "../pages/");
 	hashtable = hopen(20);
-
-	for(int id = 1; id < ending + 1; id++) {
 	
-		loadedpage = pageload(id, "../pages/");
+	while(true) {
+		pos = webpage_getNextWord(loadedpage, pos, &word);
 
-		pos = 0;
-	
-		while(true) {
-			pos = webpage_getNextWord(loadedpage, pos, &word);
-
-			if(pos == -1) {
-				break;
-			}
+		if(pos == -1) {
+			break;
+		}
 		
-			if(NormalizeWord(&word) == 0) {
-				indexentry = hsearch(hashtable, search, word, strlen(word));
-				if(indexentry == NULL) {
-					indexentry = makeindexentry(word, id);
-					hput(hashtable, indexentry, word, strlen(word));
+		if(NormalizeWord(&word) == 0) {
+			indexentry = hsearch(hashtable, search, word, strlen(word));
+			if(indexentry == NULL) {
+				indexentry = makeindexentry(word);
+				hput(hashtable, indexentry, word, strlen(word));
+			} else {
+				//printf("************************\n");
+				// in entry, search its queue of docs. If this id found, increase freq, else put another document element in the queue
+
+				document = qsearch(indexentry->word_queue_p, search_queue, &page_id);
+
+				if(document == NULL) { // word found in new document
+					document = makeQueueEntry(page_id);
+					qput(indexentry->word_queue_p, document);
 				} else {
-					//printf("************************\n");
-					// in entry, search its queue of docs. If this id found, increase freq, else put another document element in the queue
-
-					document = qsearch(indexentry->word_queue_p, search_queue, &id);
-
-					if(document == NULL) { // word found in new document
-						document = makeQueueEntry(id);
-						qput(indexentry->word_queue_p, document);
-					} else {
-						incrementDocumentFreq(document);
-					}
-					
-					free(word);
+					incrementDocumentFreq(document);
 				}
+					
+				free(word);
 			}
 		}
-
-		webpage_delete(loadedpage);
-
 	}
 	
 	happly(hashtable, printindexentry);
@@ -207,11 +198,13 @@ int main(int argc, char *argv[]) {
 	happly(hashtable, sumofindexentries);
 	// sum all frequencies from all queues
 	printf("sum: %d\n", sum);
+	
 	happly(hashtable, freeindexentry);
 	// free all documents documents from queues
 	hclose(hashtable);
 	//free queues as well?
-		
+
+	webpage_delete(loadedpage);
+
 	return 0;
-	
 }
