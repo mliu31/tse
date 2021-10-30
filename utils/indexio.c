@@ -11,18 +11,34 @@
 
 #include <stdio.h>
 #include <ctype.h>
-#include <queue.h>
-#include <hash.h>
-#include <pageio.h>
-#include <indexio.h>
+#include "queue.h"
+#include "hash.h"
+#include "pageio.h"
+#include "indexio.h"
 
+FILE *file;
 
-void indexsave(hash_table *index, char *filepath) {
-	FILE *file;
-
-	file = fopen(filepath, "w+");
+// copied from indexer.c
+static void printindexentry(void *index_e) {
+	indexentry = (idxe_t*) index_e;
 	
-	fprintf(); 
+	fprintf(file, "%s ", indexentry->word); 
+	qapply(indexentry->word_queue_p, printDocument); 
+	fprintf(file, "\n"); 
+}
+
+static void printDocument(void *doc) {
+	document = (wqe_t*) doc; 
+
+	fprintf(file, "%d %d ", document->doc_id, document->doc_word_freq); 
+}
+
+void indexsave(hashtable_t *index, char *filepath) {
+	file = fopen(filepath, "w+");
+
+	happly(index, printindexentry); 
+
+	fclose(file); 
 }
 
 

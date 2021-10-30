@@ -32,7 +32,7 @@ typedef struct word_queue_entry_t {
 } wqe_t;
 
 
-wqe_t* makeQueueEntry(int id) {
+static wqe_t* makeQueueEntry(int id) {
 	wqe_t* queue_entry = (wqe_t*)calloc(1, sizeof(wqe_t));
 
 	queue_entry->doc_id = id;
@@ -42,7 +42,7 @@ wqe_t* makeQueueEntry(int id) {
 }
 
 
-idxe_t* makeindexentry(char *word, int id) {
+static idxe_t* makeindexentry(char *word, int id) {
 	idxe_t* indexentry = malloc(sizeof(idxe_t));
 	wqe_t* queue_entry = makeQueueEntry(id);
 
@@ -54,7 +54,7 @@ idxe_t* makeindexentry(char *word, int id) {
 }
 
 
-void incrementDocumentFreq(wqe_t *document) {
+static void incrementDocumentFreq(wqe_t *document) {
 	document->doc_word_freq = (document->doc_word_freq) + 1;
 }
 
@@ -63,13 +63,13 @@ void incrementDocumentFreq(wqe_t *document) {
 	}*/
 
 
-void printDocument(void *document) {
+static void printDocument(void *document) {
 	wqe_t *document_el = (wqe_t*)(document);
 	printf("id: %d, freq: %d\n", document_el->doc_id, document_el->doc_word_freq);
 }
 
 
-void printindexentry(void *indexentry) {
+static void printindexentry(void *indexentry) {
 	idxe_t *index_e = (idxe_t*)(indexentry);
 	printf("**********\n");
 	printf("word: %s\n", index_e->word);
@@ -78,13 +78,13 @@ void printindexentry(void *indexentry) {
 }
 
 
-void freeDocument(void *document) {
+static void freeDocument(void *document) {
 	wqe_t *document_el = (wqe_t*)(document);
 	free(document_el);
 }
 
 
-void freeindexentry(void *indexentry) {
+static void freeindexentry(void *indexentry) {
 	idxe_t *index_e = (idxe_t*)(indexentry);
 	
 	qapply(index_e->word_queue_p, freeDocument);
@@ -95,7 +95,7 @@ void freeindexentry(void *indexentry) {
 }
 
 
-void sumDocumentFrequencies(void *document) {
+static void sumDocumentFrequencies(void *document) {
 	wqe_t *document_el = (wqe_t*)(document);
 	int *sum_freq_p = &sum;
 	
@@ -103,14 +103,14 @@ void sumDocumentFrequencies(void *document) {
 }
 
 
-void sumofindexentries(void *indexentry) {
+static void sumofindexentries(void *indexentry) {
 	idxe_t *index_e = (idxe_t*)(indexentry);
 
 	qapply(index_e->word_queue_p, sumDocumentFrequencies);
 }
 
 
-int NormalizeWord(char **wordptr) {
+static int NormalizeWord(char **wordptr) {
 	char *word = *wordptr;
 	int i = 0;
 
@@ -131,7 +131,7 @@ int NormalizeWord(char **wordptr) {
 }
 
 
-bool search(void* elementp, const void* searchkeyp) {
+static bool search(void* elementp, const void* searchkeyp) {
 	idxe_t *ep = (idxe_t*)elementp;
 	char *sp = (char*)searchkeyp;
 
@@ -142,7 +142,7 @@ bool search(void* elementp, const void* searchkeyp) {
 }
 
 
-bool search_queue(void* elementp, const void* searchkeyp) {
+static bool search_queue(void* elementp, const void* searchkeyp) {
 	wqe_t *ep = (wqe_t*)elementp;
 	int *sp = (int*)searchkeyp;
 

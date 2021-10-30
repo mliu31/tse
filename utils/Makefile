@@ -1,5 +1,5 @@
 CFLAGS=-Wall -pedantic -std=c11 -I. -g
-OFILES=queue.o hash.o webpage.o pageio.o
+OFILES=queue.o hash.o webpage.o pageio.o indexio.o
 
 
 all:					$(OFILES)
@@ -11,4 +11,4 @@ all:					$(OFILES)
 
 
 clean:
-							rm -f *.o *.test #\'*\'
+							rm -f *.o 

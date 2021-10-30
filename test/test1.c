@@ -1,4 +1,4 @@
-/* test.c --- 
+/* test1.c --- testing pageio.c functions
  * 
  * 
  * Author: Agon Hoxha
