@@ -17,9 +17,11 @@
 #include <queue.h>
 #include <hash.h>
 #include <string.h>
+#include "indexio.h"
 
 int sum = 0;
 
+/*
 typedef struct index_entry_t {
 	char *word;
 	queue_t *word_queue_p; 
@@ -30,7 +32,7 @@ typedef struct word_queue_entry_t {
 	int doc_id;
 	int doc_word_freq;
 } wqe_t;
-
+*/
 
 static wqe_t* makeQueueEntry(int id) {
 	wqe_t* queue_entry = (wqe_t*)calloc(1, sizeof(wqe_t));
@@ -204,12 +206,18 @@ int main(int argc, char *argv[]) {
 		webpage_delete(loadedpage);
 
 	}
+
+  char filepath[] = "./test2.txt";
+	indexsave(hashtable, filepath);
 	
+		
 	happly(hashtable, printindexentry);
 	// print each document in all queues
 	happly(hashtable, sumofindexentries);
 	// sum all frequencies from all queues
 	printf("sum: %d\n", sum);
+	
+
 	happly(hashtable, freeindexentry);
 	// free all documents documents from queues
 	hclose(hashtable);

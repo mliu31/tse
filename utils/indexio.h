@@ -20,7 +20,7 @@ typedef struct index_entry_t {
 
 typedef struct word_queue_entry_t {
 	int doc_id;
-	int doc_qord_freq;
+	int doc_word_freq;
 } wqe_t;
 
 
