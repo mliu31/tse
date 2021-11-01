@@ -70,35 +70,34 @@ hashtable_t* indexload(char *filepath) {
 	char line[640];
 	idxe_t *indexentry;
 	wqe_t *queueentry;
-	int offset, readcharcount;
+	int offset = 0, readcharcount = 0;
 	
 	// use fgets to loop thru each line
 	// for each returned str from fgets, use strtok and use " " as delimiter  -- condition of strtok != NULL
 
 	
 	while(fgets(line, 1000, file) != NULL) {
-
-		offset = 0;
-		readcharcount = 0;
 		
+		fgets(line, 1000, file);
 		word = (char*)calloc(200, sizeof(char));
 		sscanf(line, "%s%*c%n", word, &readcharcount);
+		printf("word: %s", word);
 		
 		offset += readcharcount;
 	
 		indexentry = makeindexentry(word);
 		indexentry->word_queue_p = qopen();
 
-		while(sscanf(line + offset, "%d%*c%d%*c%n", &doc, &doc_freq, &readcharcount) != EOF) {
-			
-			//sscanf(line + offset, "%d%n", &doc, &readcharcount);
-			//printf("entered while loop\n");
-			//printf("doc_id: %d", doc);
-			offset += readcharcount;
-			queueentry = makeQueueEntry(doc, doc_freq);
-			qput(indexentry->word_queue_p, queueentry);
+		//		while(sscanf(line + offset, "%d%*c%d%n", &doc, &doc_freq, &readcharcount) != EOF) {
+
+		sscanf(line + offset, "%d%*c%d%*c%n", &doc, &doc_freq, &readcharcount);
+		//sscanf(line + offset, "%d%n", &doc, &readcharcount);
+		//printf("entered while loop\n");
+		//printf("doc_id: %d", doc);
+		offset += readcharcount;
+		queueentry = makeQueueEntry(doc, doc_freq);
+		qput(indexentry->word_queue_p, queueentry);
 		
-		}
 		//	}
 		//}
 		hput(index, indexentry, indexentry->word, strlen(indexentry->word));
