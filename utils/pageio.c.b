@@ -14,7 +14,6 @@
 #include <stdlib.h>
 #include "pageio.h"
 #include "webpage.h"
-#include <unistd.h>
 
 int32_t pagesave(webpage_t *pagep, int id, char * dirnm) {
 	FILE *fp;
@@ -56,11 +55,7 @@ webpage_t* pageload(int id, char *dirnm) {
 	sprintf(filename, "%d", id);
 	strcpy(filepath, dirnm);
 	
-	if(access(strcat(filepath, filename), F_OK) != 0) {
-		return NULL;
-	}
-	
-	fp = fopen(filepath, "r");
+	fp = fopen(strcat(filepath, filename), "r");
 	
 	fscanf(fp, "%s\n", url);
 	fscanf(fp, "%d\n", &depthint);

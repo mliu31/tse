@@ -1,4 +1,4 @@
-/* indexer.c --- 
+>/* indexer.c --- 
  * 
  * 
  * Author: Agon Hoxha
@@ -162,20 +162,14 @@ int main(int argc, char *argv[]) {
 	idxe_t *indexentry;
 	char *word;
 	int pos;
-	int id = 1;
 	char *endid;
-	char *pagedirectory;
-	char *indexnm;
 
-	pagedirectory = argv[1];
-	indexnm = argv[2];
-
+	int ending = strtol(argv[1], &endid, 10);
 	hashtable = hopen(20);
 
-	loadedpage = pageload(id, pagedirectory);
-	printf("loaded first page\n");
+	for(int id = 1; id < ending + 1; id++) {
 	
-	while(true) {
+		loadedpage = pageload(id, "../pages/");
 
 		pos = 0;
 	
@@ -210,26 +204,18 @@ int main(int argc, char *argv[]) {
 		}
 
 		webpage_delete(loadedpage);
-		id++;
 
-		printf("id: %d\n", id);
-		loadedpage = pageload(id, pagedirectory);
-		if(loadedpage == NULL) {
-			break;
-		}
-		printf("loaded n+1th page\n");
-		
 	}
 
-  //char filepath[] = "./test2.txt";
-	indexsave(hashtable, indexnm);
+  char filepath[] = "./test2.txt";
+	indexsave(hashtable, filepath);
 	
 		
-	//happly(hashtable, printindexentry);
+	happly(hashtable, printindexentry);
 	// print each document in all queues
-	//happly(hashtable, sumofindexentries);
+	happly(hashtable, sumofindexentries);
 	// sum all frequencies from all queues
-	//printf("sum: %d\n", sum);
+	printf("sum: %d\n", sum);
 	
 
 	happly(hashtable, freeindexentry);
