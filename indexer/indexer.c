@@ -62,7 +62,7 @@ static void incrementDocumentFreq(wqe_t *document) {
 
 /*void incrementindexentry(idxe_t *indexentry) {
 	indexentry->freq = (indexentry->freq) + 1;
-	}*/
+	}
 
 
 static void printDocument(void *document) {
@@ -78,7 +78,7 @@ static void printindexentry(void *indexentry) {
 	qapply(index_e->word_queue_p, printDocument);
 	printf("**********\n");
 }
-
+*/
 
 static void freeDocument(void *document) {
 	wqe_t *document_el = (wqe_t*)(document);
@@ -96,7 +96,7 @@ static void freeindexentry(void *indexentry) {
 	free(index_e);
 }
 
-
+/*
 static void sumDocumentFrequencies(void *document) {
 	wqe_t *document_el = (wqe_t*)(document);
 	int *sum_freq_p = &sum;
@@ -111,7 +111,7 @@ static void sumofindexentries(void *indexentry) {
 	qapply(index_e->word_queue_p, sumDocumentFrequencies);
 }
 
-
+*/
 static int NormalizeWord(char **wordptr) {
 	char *word = *wordptr;
 	int i = 0;
@@ -163,7 +163,7 @@ int main(int argc, char *argv[]) {
 	char *word;
 	int pos;
 	int id = 1;
-	char *endid;
+	// char *endid;
 	char *pagedirectory;
 	char *indexnm;
 

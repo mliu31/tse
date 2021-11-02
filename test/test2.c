@@ -39,9 +39,8 @@ int main(void) {
 	char save_filepath[] = "./test2_save.txt";
 	hashtable_t *index; 
 
-	// how to create the hash table without copying our main function from indexer.c? 
 	index = indexload(open_filepath);
-	indexsave(index, save_filepath); // should've saved to new file 
+	indexsave(index, save_filepath); 
 
 	happly(index, freeindexentry);
 	hclose(index); 
