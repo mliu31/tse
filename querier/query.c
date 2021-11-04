@@ -33,7 +33,7 @@ int main(void) {
 		token_array_size = 0;
 		non_a_flag = 0;
 	
-		token = strtok(input, " \t ");
+		token = strtok(input, " \t");
 	
 		//token_array = (char**)(malloc(sizeof(char**)));
 	
@@ -61,7 +61,7 @@ int main(void) {
 			token_array_size++;
 			//printf("count: %d\n", token_array_size);
 
-			token = strtok(NULL, " ");
+			token = strtok(NULL, " \t");
 		
 		}
 
