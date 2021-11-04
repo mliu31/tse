@@ -12,49 +12,69 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <ctype.h>
 
 int main(void) {
  
 	char input[100];
 	char *token;
-	//char **token_array;
-	//char **ptr;
-	int token_array_size = 0;
+	char *token_array[100];
+	int token_array_size;
+	int non_a_flag;
+	int scanf_output;
+
+	while(true) {
 	
-	printf(">");
-	scanf("%s", input);
-	printf("input: %s\n", input);
+		printf(">");
+		fgets(input, 100, stdin);
 
-	token = strtok(input, " ");
+		token_array_size = 0;
+		non_a_flag = 0;
 	
-	//token_array = &token;
-	//ptr = token_array;
+		token = strtok(input, " \t ");
+	
+		//token_array = (char**)(malloc(sizeof(char**)));
+	
+		while(token != NULL) {
 
-	while(token != NULL) {
-		
-		//ptr[token_array_size] = token;
-		//printf("%s\n", ptr[token_array_size]);
-		
-		token_array_size++;
-		printf("count: %d", token_array_size);
-		//ptr++;
+			for(int i = 0; i < strlen(token); i++) {
 
-		token = strtok(NULL, " ");
+				if((!(isalpha(token[i]))) && (token[i] != '\n')) {					
+					non_a_flag = 1;
+					printf("[invalid query]\n");
+					break;
+					
+				}	else {
+					token[i] = tolower(token[i]);
+				}
+				
+			}
+
+			if(non_a_flag == 1)
+				break;
+
+			token_array[token_array_size] = token;
+			//printf("word: %s\n", token_array[token_array_size]);
 		
+			token_array_size++;
+			//printf("count: %d\n", token_array_size);
+
+			token = strtok(NULL, " ");
+		
+		}
+
+		if(non_a_flag == 0) {
+			for(int i = 0; i < token_array_size; i++) {
+
+				printf("%s ", token_array[i]);
+
+			}
+		}
+
 	}
-
-
-	/*ptr = token_array;
-
-	for(int i = 0; i < token_array_size; i++) {
-
-		printf("%s ", *ptr);
-		ptr++;
-
-	}
-
-	printf("\n");*/
-
+	
 	return 0;
 
 }
