@@ -15,7 +15,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <ctype.h>
-#include <string.h>
 #include "queue.h"
 #include "hash.h"
 #include "indexio.h"
@@ -35,15 +34,6 @@ static void freeindexentry(void *indexentry) {
 	free(index_e);
 }
 
-static bool search(void* elementp, const void* searchkeyp) {
-	idxe_t *ep = (idxe_t*)elementp;
-	char *sp = (char*)searchkeyp;
-
-	if(strcmp(ep->word, sp) == 0) {
-		return true;
-	}
-	return false;
-}
 
 int main(void) {
  
@@ -54,8 +44,6 @@ int main(void) {
 	int non_a_flag;
 	int scanf_output;
 	hashtable_t *index;
-	idxe_t *indexentry;
-	
 
 	index = hopen(20);
 	index = indexload("./1.txt");
@@ -104,8 +92,7 @@ int main(void) {
 			for(int i = 0; i < token_array_size; i++) {
 
 				printf("%s ", token_array[i]);
-				indexentry = hsearch(index, search, token_array[i], strlen(token_array[i]));
-				printf("Word is %s", indexentry->word);
+
 			}
 		}
 
