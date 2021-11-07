@@ -46,7 +46,6 @@ int main(void) {
 	int scanf_output;
 	hashtable_t *index;
 
-	index = hopen(20);
   index = indexload("./1.txt");
 
 	while(true) {

@@ -67,7 +67,7 @@ int main(void) {
 	idxe_t *indexentry;
 	wqe_t *document;
 	int id = 1;
-	int minimum = 0;
+	int minimum;
 	
 	index = indexload("./1.txt");
 
@@ -80,7 +80,8 @@ int main(void) {
 		token_array_size = 0;
 	
 		token = strtok(input, " \t\n");
-	
+		minimum = 0;
+		
 		while(token != NULL) {
 
 			for(int i=0; i<strlen(token); i++) {
@@ -88,11 +89,9 @@ int main(void) {
 					is_invalid_query = true; 
 					printf("[invalid query]\n");
 					break;
-					
 				}	else {
 					token[i] = tolower(token[i]);
 				}
-				
 			}
 
 			if(is_invalid_query)
@@ -104,22 +103,22 @@ int main(void) {
 			token_array_size++;
 			//printf("count: %d\n", token_array_size);
 
-			token = strtok(NULL, " \t");
-		
+			token = strtok(NULL, " \t\n");
 		}
 
 		if(!is_invalid_query) {
 			for(int i = 0; i < token_array_size; i++) {
 				indexentry = hsearch(index, search, token_array[i], strlen(token_array[i]));
+
 				if(indexentry == NULL) {
-					printf("Query not found in index ");
+					printf("%s: [query not found in index] ", token_array[i]);
 				} else {
 					//printf("Index element: %s\n", indexentry->word);
 					
 					document = qsearch(indexentry->word_queue_p, search_queue, &id);
 
 					if(document == NULL) {
-						printf("Word not in document\n");
+						printf("%s: [word not in document] ", token_array[i]);
 					} else {
 						if(minimum == 0 || minimum > document->doc_word_freq) minimum = document->doc_word_freq;
 						//printf("Word count is: %d\n", document->doc_word_freq);
@@ -134,7 +133,9 @@ int main(void) {
 					printf("%s ", token_array[i]);
 					}*/
 			}
-			if(minimum != 0) printf("- %d\n", minimum);
+			printf("min: %d", minimum); 
+			if(minimum != 0)
+				printf("- %d\n", minimum);
 			minimum = 0;
 		}
 	}
