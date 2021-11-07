@@ -19,18 +19,6 @@
 #include "indexio.h"
 
 
-typedef struct querydocuments_queue_elem_type {
-	wqe_t *document;
-	int rank;
-	char url[100]; 
-} qd_qe_t; 
-
-
-static void print_querydocuments_queue_elem(qd_qe_t* qd_queue_elem) {
-	printf("rank:%d:doc:%d:%s", qd_queue_elem->rank, qd_queue_elem->document->doc_id, qd_queue_elem->url); 
-}
-
-
 static void freeDocument(void *document) {
 	wqe_t *document_el = (wqe_t*)(document);
 	free(document_el);
