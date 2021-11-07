@@ -1,4 +1,4 @@
-/* query.c --- 
+od/* query.c --- 
  * 
  * 
  * Author: Agon Hoxha
@@ -59,7 +59,7 @@ static bool search(void* elementp, const void* searchkeyp) {
 }
 
 
-static bool search_queue(void* elementp, const void* searchkeyp) {
+static bool search_queue_fn(void* elementp, const void* searchkeyp) {
 	wqe_t *ep = (wqe_t*)elementp;
 	int *sp = (int*)searchkeyp;
 
@@ -83,7 +83,8 @@ int main(void) {
 	int minimum;
 	
 	index = indexload("output_depth1-7.txt");
-	
+
+	// take in user input
 	while(true) {
 	
 		printf(">");
@@ -94,7 +95,8 @@ int main(void) {
 	
 		token = strtok(input, " \t\n");
 		minimum = 0;
-		
+
+		// ensure user input is valid 
 		while(token != NULL) {
 			for(int i=0; i<strlen(token); i++) {
 				if((!(isalpha(token[i]))) && (token[i] != '\n')) {					
@@ -118,24 +120,25 @@ int main(void) {
 			token = strtok(NULL, " \t\n");
 		}
 
+		// process user input wrt index hashtable
 		if(!is_invalid_query) {
 			for(int i = 0; i < token_array_size; i++) {
 				indexentry = hsearch(index, search, token_array[i], strlen(token_array[i]));
 
 				if(indexentry == NULL) {
-					printf("%s:[query not found in index] ", token_array[i]);
+				  printf("%s:[query not found in index] ", token_array[i]);
+					
 				} else {
 					//printf("Index element: %s\n", indexentry->word);
 					
-					document = qsearch(indexentry->word_queue_p, search_queue, &id);
-
+					
+					document = qsearch(indexentry->word_queue_p, search_queue_fn, &id); 
+					
 					if(document == NULL) {
 						printf("%s:[word not in document] ", token_array[i]);
 					} else {
-						if(!(strcmp(token_array[i], "and"))) {
-							// printf("%s --- continuing", token_array[i]); 
+						if(!(strcmp(token_array[i], "and")))
 							continue; 
-					}
 						else
 							if(minimum == 0 || minimum > document->doc_word_freq)
 								minimum = document->doc_word_freq;
@@ -143,15 +146,9 @@ int main(void) {
 						printf("%s:%d ", token_array[i], document->doc_word_freq); 
 					}
 				}
-				/*if (token_array_size == 1)
-					printf("%s\n", token_array[i]);
-				else if (i == token_array_size-1) 
-					printf("%s", token_array[i]);
-				else
-					printf("%s ", token_array[i]);
-					}*/
 			}
 
+			// print minimum
 			if(minimum != 0)
 				printf("- %d\n", minimum);
 			else {
