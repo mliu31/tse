@@ -1,4 +1,3 @@
-
 /* query.c --- 
  * 
  * 
@@ -83,7 +82,6 @@ int main(void) {
 		minimum = 0;
 		
 		while(token != NULL) {
-
 			for(int i=0; i<strlen(token); i++) {
 				if((!(isalpha(token[i]))) && (token[i] != '\n')) {					
 					is_invalid_query = true; 
@@ -120,7 +118,13 @@ int main(void) {
 					if(document == NULL) {
 						printf("%s: [word not in document] ", token_array[i]);
 					} else {
-						if(minimum == 0 || minimum > document->doc_word_freq) minimum = document->doc_word_freq;
+						if(!(strcmp(token_array[i], "and"))) {
+							// printf("%s --- continuing", token_array[i]); 
+							continue; 
+					}
+						else
+							if(minimum == 0 || minimum > document->doc_word_freq)
+								minimum = document->doc_word_freq;
 						//printf("Word count is: %d\n", document->doc_word_freq);
 						printf("%s:%d ", token_array[i], document->doc_word_freq); 
 					}
@@ -133,10 +137,13 @@ int main(void) {
 					printf("%s ", token_array[i]);
 					}*/
 			}
-			printf("min: %d", minimum); 
+
 			if(minimum != 0)
 				printf("- %d\n", minimum);
-			minimum = 0;
+			else {
+				minimum = 0;
+				printf("\n");
+			}
 		}
 	}
 	happly(index, freeindexentry);
