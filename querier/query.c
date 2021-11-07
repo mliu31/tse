@@ -15,10 +15,10 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <ctype.h>
-#include <string.h>
 #include "queue.h"
 #include "hash.h"
 #include "indexio.h"
+
 
 static void freeDocument(void *document) {
 	wqe_t *document_el = (wqe_t*)(document);
@@ -45,39 +45,47 @@ static bool search(void* elementp, const void* searchkeyp) {
 	return false;
 }
 
+static bool search_queue(void* elementp, const void* searchkeyp) {
+	wqe_t *ep = (wqe_t*)elementp;
+	int *sp = (int*)searchkeyp;
+
+	if(ep->doc_id == *sp) {
+		return true;
+	}
+	return false;
+}
+
 int main(void) {
  
 	char input[100];
 	char *token;
 	char *token_array[100];
 	int token_array_size;
-	int non_a_flag;
+	bool is_invalid_query = false; 
 	int scanf_output;
 	hashtable_t *index;
 	idxe_t *indexentry;
+	wqe_t *document;
+	int id = 1;
+	int minimum = 0;
 	
-
-	index = hopen(20);
 	index = indexload("./1.txt");
 
 	while(true) {
 	
 		printf(">");
-		fgets(input, 100, stdin);
+		if (fgets(input, 100, stdin) == NULL)
+			break;
 
 		token_array_size = 0;
-		non_a_flag = 0;
 	
-		token = strtok(input, " \t");
-	
-		//token_array = (char**)(malloc(sizeof(char**)));
+		token = strtok(input, " \t\n");
 	
 		while(token != NULL) {
 
-			for(int i = 0; i < strlen(token); i++) {
-
+			for(int i=0; i<strlen(token); i++) {
 				if((!(isalpha(token[i]))) && (token[i] != '\n')) {					
-					non_a_flag = 1;
+					is_invalid_query = true; 
 					printf("[invalid query]\n");
 					break;
 					
@@ -87,7 +95,7 @@ int main(void) {
 				
 			}
 
-			if(non_a_flag == 1)
+			if(is_invalid_query)
 				break;
 
 			token_array[token_array_size] = token;
@@ -100,15 +108,35 @@ int main(void) {
 		
 		}
 
-		if(non_a_flag == 0) {
+		if(!is_invalid_query) {
 			for(int i = 0; i < token_array_size; i++) {
-
-				printf("%s ", token_array[i]);
 				indexentry = hsearch(index, search, token_array[i], strlen(token_array[i]));
-				printf("Word is %s", indexentry->word);
-			}
-		}
+				if(indexentry == NULL) {
+					printf("Query not found in index ");
+				} else {
+					//printf("Index element: %s\n", indexentry->word);
+					
+					document = qsearch(indexentry->word_queue_p, search_queue, &id);
 
+					if(document == NULL) {
+						printf("Word not in document\n");
+					} else {
+						if(minimum == 0 || minimum > document->doc_word_freq) minimum = document->doc_word_freq;
+						//printf("Word count is: %d\n", document->doc_word_freq);
+						printf("%s:%d ", token_array[i], document->doc_word_freq); 
+					}
+				}
+				/*if (token_array_size == 1)
+					printf("%s\n", token_array[i]);
+				else if (i == token_array_size-1) 
+					printf("%s", token_array[i]);
+				else
+					printf("%s ", token_array[i]);
+					}*/
+			}
+			if(minimum != 0) printf("- %d\n", minimum);
+			minimum = 0;
+		}
 	}
 	happly(index, freeindexentry);
 	hclose(index);
