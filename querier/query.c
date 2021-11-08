@@ -28,18 +28,19 @@ typedef struct querydocuments_queue_elem_type {
 } qd_qe_t; 
 
 
-static qd_qe_t* make_querydoc_qelem(&id) {
+static qd_qe_t* make_querydoc_qelem(int id) {
 	qd_qe_t* querydoc_qe = (qd_qe_t*)calloc(1, sizeof(qd_qe_t));
-	querydoc_qe->id = *id;
+	querydoc_qe->id = id;
 	querydoc_qe->rank = 0;
 	// process url
 	querydoc_qe->all_query_words_in_doc = true; 
 
+	return querydoc_qe; 
 }
 
 
 static void print_querydocuments_queue_elem(qd_qe_t *qd_queue_elem) {
-	printf("rank:%d:doc:%d:%s", qd_queue_elem->rank, qd_queue_elem->document->doc_id, qd_queue_elem->url); 
+	printf("rank:%d:doc:%d:%s", qd_queue_elem->rank, qd_queue_elem->id, qd_queue_elem->url); 
 }
 
 
@@ -142,7 +143,7 @@ int main(void) {
 
 		// process user input wrt index hashtable -- create queue of docs that contain all the words in the query
 		if(!is_invalid_query) {
-			word_dne_in_index = false;
+			query_dne_in_index = false;
 			
 			// loop thru all documents by id and add them to our queue 
 			for(id=1; id<max_id; id++) {
@@ -151,7 +152,7 @@ int main(void) {
 
 				printf("id: %d\n", id); 
 
-				querydoc_qelem = make_querydoc_qelem(&id); 
+				querydoc_qelem = make_querydoc_qelem(id); // QUESTION: SHOUDL IT BE THE ADDRESS?  
 				
 				// loop thru all query tokens 
 				// if doc w/o query token, change bool all_query_words_in_doc to be false
@@ -186,13 +187,15 @@ int main(void) {
 				}
 			
 				// print minimum
-				if(querydoc_qelem->rank != 0)
+				/*if(querydoc_qelem->rank != 0)
 					printf("- %d\n", minimum);
 				else 
 					printf("\n");
-		
-				// print doc queue 
+				*/
+				
+				qput(query_documents_queue, querydoc_qelem); 
 			}
+			// print docs (check if all_query_words_in_doc)
 		}
 	}
 	
