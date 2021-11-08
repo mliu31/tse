@@ -22,12 +22,19 @@ od/* query.c ---
 typedef struct querydocuments_queue_elem_type {
 	wqe_t *document;
 	int rank;
-	char url[100]; 
+	char url[100];
+	bool all_query_words_in_doc = true; 
 } qd_qe_t; 
 
 
-static void print_querydocuments_queue_elem(qd_qe_t* qd_queue_elem) {
+static void print_querydocuments_queue_elem(qd_qe_t *qd_queue_elem) {
 	printf("rank:%d:doc:%d:%s", qd_queue_elem->rank, qd_queue_elem->document->doc_id, qd_queue_elem->url); 
+}
+
+static void free_querydoc_qelem_type(qd_qe_t *qd_queue_elem) {
+	free(qd_queue_elem->document);
+	free(qd_queue_elem->url);
+	free(qd_queue_elem); 
 }
 
 
@@ -79,11 +86,14 @@ int main(void) {
 	hashtable_t *index;
 	idxe_t *indexentry;
 	wqe_t *document;
-	int id = 1;
+	int id = 1, max_id = 7;  // depth 1
 	int minimum;
+	queue_t *query_documents_queue; 
+	bool all_query_words_in_doc;
 	
 	index = indexload("output_depth1-7.txt");
-
+	query_documents_queue = qopen();
+	
 	// take in user input
 	while(true) {
 	
@@ -96,7 +106,7 @@ int main(void) {
 		token = strtok(input, " \t\n");
 		minimum = 0;
 
-		// ensure user input is valid 
+		// validate user input 
 		while(token != NULL) {
 			for(int i=0; i<strlen(token); i++) {
 				if((!(isalpha(token[i]))) && (token[i] != '\n')) {					
@@ -120,31 +130,42 @@ int main(void) {
 			token = strtok(NULL, " \t\n");
 		}
 
-		// process user input wrt index hashtable
+		// process user input wrt index hashtable -- create queue of docs that contain all the words in the query
 		if(!is_invalid_query) {
+			// PSEUDOCODE--not a clean soln tho
+			// get (valid) indexentry's word_queue (elem containing doc_id and doc_freq) from the first token and put all elem in queue w elem type of querydocuments_queue_elem_type (need to malloc)
+			// qapply the recently-made queue and check that the rest of the tokens are in the docs (for loop starting at i=1 to i<token_array_size)
+		 	    // if they aren't in the doc, modify boolean all_query_words_in_doc = false
+			// print documents in the structure specified in the instructions for elems with all_query_words_in_doc = true
+			// free elems and queue 
+
 			for(int i = 0; i < token_array_size; i++) {
 				indexentry = hsearch(index, search, token_array[i], strlen(token_array[i]));
 
 				if(indexentry == NULL) {
 				  printf("%s:[query not found in index] ", token_array[i]);
-					
+					all_query_words_in_doc = false;
+					break; 					
 				} else {
 					//printf("Index element: %s\n", indexentry->word);
 					
-					
-					document = qsearch(indexentry->word_queue_p, search_queue_fn, &id); 
-					
-					if(document == NULL) {
-						printf("%s:[word not in document] ", token_array[i]);
-					} else {
-						if(!(strcmp(token_array[i], "and")))
-							continue; 
-						else
-							if(minimum == 0 || minimum > document->doc_word_freq)
-								minimum = document->doc_word_freq;
-						//printf("Word count is: %d\n", document->doc_word_freq);
-						printf("%s:%d ", token_array[i], document->doc_word_freq); 
-					}
+					// loop thru all documents (by id) 
+					//					for(int i=0; i<max_id; i++) { 
+						document = qsearch(indexentry->word_queue_p, search_queue_fn, &id); 
+
+						if(document == NULL) { // if document doesn't contain query word 
+							printf("%s:[word not in document] ", token_array[i]);
+						} else {
+							if(!(strcmp(token_array[i], "and")))
+								continue; 
+							else
+								if(minimum == 0 || minimum > document->doc_word_freq)
+									minimum = document->doc_word_freq;
+							//printf("Word count is: %d\n", document->doc_word_freq);
+							printf("%s:%d ", token_array[i], document->doc_word_freq); 
+						}
+						//						id++;
+						//}
 				}
 			}
 
@@ -154,9 +175,14 @@ int main(void) {
 			else {
 				minimum = 0;
 				printf("\n");
+
+
+				// print doc queue 
 			}
 		}
 	}
+
+	qclose(query_documents_queue); 
 	happly(index, freeindexentry);
 	hclose(index);
 	return 0;
