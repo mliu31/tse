@@ -36,7 +36,7 @@ static void freeindexentry(void *indexentry) {
 }
 
 
-static bool search(void* elementp, const void* searchkeyp) {
+static bool search_index(void* elementp, const void* searchkeyp) {
 	idxe_t *ep = (idxe_t*)elementp;
 	char *sp = (char*)searchkeyp;
 
@@ -57,54 +57,108 @@ static bool search_queue(void* elementp, const void* searchkeyp) {
 	return false;
 }
 
+
 void qunion(queue_t *big_box, queue_t *small_box) {
 
 	queue_t *backup = qopen();
 	wqe_t *document;
+	int *doc_id;
 	wqe_t *result;
 
-	while(document = (qget(small_box) != NULL)) {
-
-		result = qsearch(big_box, document->doc_id);
-
-		if(result == NULL)
-			qput(big_box, document);
-		else
-			result->doc_word_freq += document->doc_word_freq;
-
-		qput(backup, document);
-
-	}
-
-	qconcat(small_box, backup);
-
-}
-	
-
-void qintersection(queue_t *big_box, queue_t *small_box) {
-
-	queue_t *backup = qopen();
-	wqe_t *document;
-	wqe_t *result;
-
-	while(document = (qget(small_box) != NULL)) {
-
-		result = qsearch(big_box, document->doc_id);
+	while((document = ((wqe_t*)qget(small_box)))) {
+		printf("documentid: %d\n", document->doc_id); 
+		
+		doc_id = &(document->doc_id);
+		result = qsearch(big_box, search_queue, (void*)doc_id);
 
 		if(result == NULL)
 			qput(big_box, document);
 		else {
-			if(result->doc_word_freq > document->doc_word_freq)
-				result->doc_word_freq = document->doc_word_freq;
+			result->doc_word_freq += document->doc_word_freq;
 		}
-		
 		qput(backup, document);
 
 	}
-
 	qconcat(small_box, backup);
-
 }
+	
+
+void qintersect(queue_t *big_box, queue_t *small_box) {
+
+	queue_t *backup = qopen();
+	wqe_t *document;
+	int *doc_id; 
+	wqe_t *result;
+
+	while((document = ((wqe_t*)qget(small_box)))) {
+		doc_id = &(document->doc_id);
+		result = qsearch(big_box, search_queue, (void*)doc_id);
+
+		if(result == NULL)
+			qput(big_box, document);
+		else {
+			result = calloc(1, sizeof(wqe_t*));
+			if(result->doc_word_freq > document->doc_word_freq)
+				result->doc_word_freq = document->doc_word_freq;
+		}
+		qput(backup, document);
+	}
+	qconcat(small_box, backup); 
+}
+
+
+void process_query_tokens(int token_array_size, char **token_array, hashtable_t *index) {
+	queue_t *big_box, *small_box=NULL; 
+	idxe_t *indexentry;
+	
+	big_box = qopen();
+			
+	for(int i = 0; i < token_array_size; i++) {
+		printf("TOKEN--%d: %s\n", i, token_array[i]);
+		
+		if(!(strcmp(token_array[i], "or"))) {
+			printf("#1 (if or)----------------------------------------------\n");
+			
+			qunion(big_box, small_box);
+			qclose(small_box);
+						
+		} else if(strcmp(token_array[i], "and")) { // actual word in query
+			printf("#2 (actual word in query)----------------------------------------------\n"); 
+
+			indexentry = hsearch(index, search_index, token_array[i], strlen(token_array[i]));					
+
+			if(indexentry == NULL) {
+				printf("#2.1 (query word not in index)----------------------------------------------\n");
+
+				int j = i+1;
+				while(j<token_array_size) {
+					if(!(strcmp(token_array[j], "or")))
+						break; 
+					j++; 
+				}
+				i = j-1; 
+				// if(i == token_array_size-1) i--;
+						
+			} else if (small_box == NULL) {
+				printf("#2.2 (null small box)----------------------------------------------\n");
+
+				small_box = qopen(); 
+				qunion(small_box, indexentry->word_queue_p); 
+			}
+			else {
+				printf("#2.3 (else)----------------------------------------------\n");
+		
+				qintersect(small_box, indexentry->word_queue_p);
+			}
+		}
+	}
+	if(small_box != NULL)
+		qunion(big_box, small_box);
+
+
+	// print out everything 
+}
+
 
 int main(void) {
 	char input[100];
@@ -113,16 +167,16 @@ int main(void) {
 	int token_array_size;
 	bool is_invalid_query = false; 
 	hashtable_t *index;
-	queue_t *big_box, *small_box;
-	idxe_t *indexentry;
-	wqe_t *document;
-	int id = 1;
-	int minimum;
+	//	queue_t *big_box, *small_box;
+	//	idxe_t *indexentry;
+	//	wqe_t *document;
+	//	int id = 1;
+	//	int minimum;
 	
 	index = indexload("output_depth1-7.txt");
 	
 	while(true) {
-	
+		// take in user input
 		printf(">");
 		if (fgets(input, 100, stdin) == NULL)
 			break;
@@ -130,7 +184,7 @@ int main(void) {
 		token_array_size = 0;
 	
 		token = strtok(input, " \t\n");
-		minimum = 0;
+		//		minimum = 0;
 		
 		while(token != NULL) {
 			for(int i=0; i<strlen(token); i++) {
@@ -147,70 +201,99 @@ int main(void) {
 				break;
 
 			token_array[token_array_size] = token;
-			//printf("word: %s\n", token_array[token_array_size]);
+			// printf("word: %s\n", token_array[token_array_size]);
 		
 			token_array_size++;
 			//printf("count: %d\n", token_array_size);
 
 			token = strtok(NULL, " \t\n");
 		}
-		
-		if(!is_invalid_query) {
 
+		// processing tokens to produce output 
+		if(!is_invalid_query) {
+			process_query_tokens(token_array_size, token_array, index); 
+			
+			/*
 			big_box = qopen();
-			small_box = qopen();
+			//	small_box = qopen();
 			
 			for(int i = 0; i < token_array_size; i++) {
-				indexentry = hsearch(index, search, token_array[i], strlen(token_array[i]));
 
-				if(strcmp(indexentry->word, "or")) {
+				if(strcmp(token_array[i], "or")) {
 						
 					qunion(big_box, small_box);
-					
+					qclose(small_box);
+					// small_box = qopen(); 
 						
+				} else if(!(strcmp(token_array[i], "and"))) { // actual word in query
+
+					indexentry = hsearch(index, search_index, token_array[i], strlen(token_array[i]));					
+
+					if(indexentry == NULL) {
+
+						while(!(strcmp(token_array[i], "or"))) {
+							if(i == token_array_size) break;
+							i++; 
+						}
+						if(i == token_array_size-1) i--;
+						
+												 
+					} else if (small_box == NULL)
+						small_box = qopen(); 
+					union(small_box, indexentry->word_queue_p); 
+
+					else
+						intersect(small_box, indexentry->word_queue_p); 
 				}
 
+				if(small_box != NULL)
+					union(big_box, small_box); 
+				*/
 				
-				if(indexentry == NULL) {
+				////////////////////
+				/*
+					if(indexentry == NULL) {
 					printf("%s:[query not found in index] ", token_array[i]);
-				} else {
+					} else {
 					//printf("Index element: %s\n", indexentry->word);
 					
 					document = qsearch(indexentry->word_queue_p, search_queue, &id);
 
 					if(document == NULL) {
-						printf("%s:[word not in document] ", token_array[i]);
+					printf("%s:[word not in document] ", token_array[i]);
 					} else {
-						if(!(strcmp(token_array[i], "and"))) {
-							// printf("%s --- continuing", token_array[i]); 
-							continue; 
+					if(!(strcmp(token_array[i], "and"))) {
+					// printf("%s --- continuing", token_array[i]); 
+					continue; 
 					}
-						else
-							if(minimum == 0 || minimum > document->doc_word_freq)
-								minimum = document->doc_word_freq;
-						//printf("Word count is: %d\n", document->doc_word_freq);
-						printf("%s:%d ", token_array[i], document->doc_word_freq); 
+					else
+					if(minimum == 0 || minimum > document->doc_word_freq)
+					minimum = document->doc_word_freq;
+					//printf("Word count is: %d\n", document->doc_word_freq);
+					printf("%s:%d ", token_array[i], document->doc_word_freq); 
 					}
-				}
-				/*if (token_array_size == 1)
-					printf("%s\n", token_array[i]);
-				else if (i == token_array_size-1) 
-					printf("%s", token_array[i]);
-				else
-					printf("%s ", token_array[i]);
-					}*/
-			}
+					}
+				
+					//if (token_array_size == 1)
+					//printf("%s\n", token_array[i]);
+					//else if (i == token_array_size-1) 
+					//	printf("%s", token_array[i]);
+					//else
+					//	printf("%s ", token_array[i]);
+					//	}
+					}
 
-			if(minimum != 0)
-				printf("- %d\n", minimum);
-			else {
-				minimum = 0;
-				printf("\n");
+					if(minimum != 0)
+					printf("- %d\n", minimum);
+					else {
+					minimum = 0;
+					printf("\n");
+					}
+				*/
 			}
 		}
-	}
-	happly(index, freeindexentry);
-	hclose(index);
-	return 0;
+		happly(index, freeindexentry);
+		hclose(index);
+		return 0;
 
-}
+	}
