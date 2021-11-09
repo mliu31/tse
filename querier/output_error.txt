@@ -1,0 +1,24 @@
+>
+[invalid query]
+>Bibaswan
+>professor or 19
+[invalid query]
+>professor and !
+[invalid query]
+>          professor and   19 or computer or !
+[invalid query]
+>and computer
+[invalid query]
+>or computer
+[invalid query]
+>   and
+[invalid query]
+>taylor and
+[invalid query]
+>taylor or
+[invalid query]
+>or     
+[invalid query]
+>bibaswan or taylor and or querier
+[invalid query]
+>bibaswan and taylor>

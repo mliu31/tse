@@ -87,7 +87,6 @@ void* qget(queue_t *qp) {
 	rq = (rq_t*)qp;
 
 	if (rq->back==NULL && rq->front==NULL) {
-		printf("Cannot get() element from empty queue\n");
 		return NULL;
 	}
 	else if(rq->back==rq->front) {
@@ -142,14 +141,12 @@ void qapply(queue_t *qp, void(*fn)(void* elementp)) {
 	rq = (rq_t*)qp;
 
 	if(rq == NULL) {
-		printf("No queue\n");
 		return;
 	}
 	
 	e = rq->front;
 
 	if(e == NULL){
-		printf("Empty queue\n");
 		return;
 	}
 	

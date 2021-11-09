@@ -63,20 +63,20 @@ static bool search_queue(void* elementp, const void* searchkeyp) {
 
 void qunion(queue_t *big_box, queue_t *small_box) {
 	if(big_box == NULL || small_box == NULL) return;
- 
+
 	queue_t *backup = qopen();
 	wqe_t *document, *new_doc;
 	wqe_t *result;
 
 	while((document = ((wqe_t*)qget(small_box)))) {
-		// printf("QUNION // documentid: %d ; docfreq: %d\n", document->doc_id, document->doc_word_freq); 
-		
+		// printf("QUNION // documentid: %d ; docfreq: %d\n", document->doc_id, document->doc_word_freq);
+
 		result = qsearch(big_box, search_queue, (void*)(&document->doc_id));
 
 		if(result == NULL) {
 			new_doc = malloc(sizeof(wqe_t));
 			new_doc->doc_id = document->doc_id;
-			new_doc->doc_word_freq = document->doc_word_freq; 
+			new_doc->doc_word_freq = document->doc_word_freq;
 			qput(big_box, new_doc);
 		}
 		else {
@@ -87,26 +87,26 @@ void qunion(queue_t *big_box, queue_t *small_box) {
 	}
 	qconcat(small_box, backup);
 }
-	
+
 
 void qintersect(queue_t *big_box, queue_t *small_box) {
 	if(big_box == NULL || small_box == NULL) return;
-	
+
 	queue_t *backup = qopen();
 	wqe_t *document;
 	wqe_t *result;
 
 	while((document = ((wqe_t*)qget(big_box)))) {
 		result = qsearch(small_box, search_queue, (void*)(&document->doc_id));
-		
+
 		if(result == NULL)
-			free(document); 
+			free(document);
 		else {
 			// printf("qintersect for doc %d*******************", document->doc_id);
 			// printf("result freq: %d || doc freq: %d\n", result->doc_word_freq, document->doc_word_freq);
 			qput(backup, document);
 			if(result->doc_word_freq < document->doc_word_freq) {
-				document->doc_word_freq = result->doc_word_freq; 
+				document->doc_word_freq = result->doc_word_freq;
 			}
 		}
 	}
@@ -118,150 +118,118 @@ void qintersect(queue_t *big_box, queue_t *small_box) {
 void print_query_output(void* q) {
 	wqe_t* q_elem = (wqe_t*)q;
 	webpage_t* webpage = pageload(q_elem->doc_id, dirname);
-	
+
 	printf("rank: %d : doc: %d : %s\n", q_elem->doc_word_freq, q_elem->doc_id, webpage_getURL(webpage));
 	webpage_delete(webpage);
 }
 
 
-queue_t* process_query_tokens(int token_array_size, char **token_array, hashtable_t *index, bool quiet, char *input) {
-	queue_t *big_box, *small_box=NULL; 
+queue_t* process_query_tokens(int token_array_size, char **token_array, hashtable_t *index) {
+	queue_t *big_box, *small_box=NULL;
 	idxe_t *indexentry;
-	
+
 	big_box = qopen();
-			
+
 	for(int i = 0; i < token_array_size; i++) {
-		//		printf("TOKEN--%d: %s\n", i, token_array[i]);
+		//printf("TOKEN--%d: %s\n", i, token_array[i]);
 		if(!(strcmp(token_array[i], "or"))) {
-			// printf("#1 (if or)----------------------------------------------\n"); 
+			// printf("#1 (if or)----------------------------------------------\n");
 			qunion(big_box, small_box);
 			qapply(small_box, freeDocument);
-			
-			if(small_box != NULL) {  
+
+			if(small_box != NULL) {
 				qclose(small_box);
 				small_box = NULL;
 			}
-			
+
 		} else if(strcmp(token_array[i], "and")) { // actual word in query
-			// printf("#2 (actual word in query)----------------------------------------------\n"); 
-			indexentry = hsearch(index, search_index, token_array[i], strlen(token_array[i]));					
+			// printf("#2 (actual word in query)----------------------------------------------\n");
+			indexentry = hsearch(index, search_index, token_array[i], strlen(token_array[i]));
 			if(indexentry == NULL) {
-				// 				printf("#2.1 (query word not in index)----------------------------------------------\n");
+				// printf("#2.1 (query word not in index)----------------------------------------------\n");
 
 				int j = i+1;
 				while(j<token_array_size) {
 					if(!(strcmp(token_array[j], "or")))
-						break; 
-					j++; 
+						break;
+					j++;
 				}
-				i = j-1; 
+				i = j-1;
 				// if(i == token_array_size-1) i--;
-						
-			} else if (small_box == NULL) {
-				// 				printf("#2.2 (null small box)----------------------------------------------\n");
 
-				small_box = qopen(); 
-				qunion(small_box, indexentry->word_queue_p); 
+			} else if (small_box == NULL) {
+				// printf("#2.2 (null small box)----------------------------------------------\n");
+
+				small_box = qopen();
+				qunion(small_box, indexentry->word_queue_p);
 			}
 			else {
-				// 				printf("#2.3 (else)----------------------------------------------\n");
-				//				printf("indexentry word: %s\n", indexentry->word); 
+				// printf("#2.3 (else)----------------------------------------------\n");
+				//printf("indexentry word: %s\n", indexentry->word);
 				qintersect(small_box, indexentry->word_queue_p);
 			}
 		}
 	}
-	
+
 	if(small_box != NULL) {
 		qunion(big_box, small_box);
-		qapply(small_box, freeDocument); 
-		qclose(small_box); 
+		qapply(small_box, freeDocument);
+		qclose(small_box);
 	}
-			
+
+	// print out everything
 	qapply(big_box, print_query_output);
-	return big_box; 
+	return big_box;
 }
 
 
-int main(int argc, char *argv[]) {
+int main(void) {
 	char input[100];
 	char *token;
 	char *token_array[100];
 	int token_array_size;
-	bool is_invalid_query = false; 
+	bool is_invalid_query = false;
 	hashtable_t *index;
-	queue_t *big_box = NULL;  //, *small_box;
-	bool quiet = false;
-	
-	if((argc != 3) && (argc != 4)) {
-		printf("invalid number of parameters! %d\n", argc);
-		return -1;
-	}
+	queue_t *big_box;  //, *small_box;
 
-	strcpy(dirname, argv[1]);
-
-	webpage_t *testpage = pageload(1, dirname);
-		
-	if(testpage == NULL) {
-		printf("invalid or inaccessible directory!\n");
-		return -2;
-	} else {
-		webpage_delete(testpage);
-	}
-	
-	if(argc == 4 && !(strcmp(argv[3], "-q"))) {
-		quiet = true;
-	}
-
-	char currdir[50];
-	strcpy(currdir, "./");
-	
-	if(access(strcat(currdir, argv[2]), R_OK) != 0) {
-		printf("index file not readable!\n");
-		return -3;
-	}
-	
 	index = indexload("output_depth3.txt");
-	
+	strcpy(dirname, "../pages/");
+
+	printf("dirname: %s\n", dirname);
+	webpage_t *fuck = pageload(8, dirname);
+	printf("url: %s\n", webpage_getURL(fuck));
+	webpage_delete(fuck);
+
 	while(true) {
 		// take in user input
 		is_invalid_query = false;
-		memset(input, 0, sizeof(input));
-		token = NULL;
-		
-		if(quiet)
-			printf(">");
-		
+		printf(">");
 		if (fgets(input, 100, stdin) == NULL)
 			break;
 
 		token_array_size = 0;
 
-		if(quiet)
-			printf("%s", input);
-	
 		token = strtok(input, " \t\n");
-		//		minimum = 0;
-		
+		//minimum = 0;
+
 		while(token != NULL) {
 
 			if(!(strcmp(token, "or")) || !(strcmp(token, "and"))) {
 
 				if((token_array_size != 0) && (!(strcmp(token_array[token_array_size - 1], "or")) || !(strcmp(token_array[token_array_size - 1], "and")))) {
-					if(!(is_invalid_query))
-						printf("[invalid query]\n");
+					printf("[invalid query]\n");
 					is_invalid_query = true;
 					break;
 				}
-				
+
 			}
-			
+
 			for(int i=0; i<strlen(token); i++) {
-				if((!(isalpha(token[i]))) && (token[i] != '\n')) {					
-					if(!(is_invalid_query))
-						printf("[invalid query]\n");
+				if((!(isalpha(token[i]))) && (token[i] != '\n')) {
 					is_invalid_query = true;
+					printf("[invalid query]\n");
 					break;
-				}	else {
+				}else {
 					token[i] = tolower(token[i]);
 				}
 			}
@@ -271,36 +239,30 @@ int main(int argc, char *argv[]) {
 
 			token_array[token_array_size] = token;
 			// printf("word: %s\n", token_array[token_array_size]);
-		
+
 			token_array_size++;
 			//printf("count: %d\n", token_array_size);
 
 			token = strtok(NULL, " \t\n");
 		}
 
-		if(token_array_size == 0) {
-			if(!(is_invalid_query))
-				printf("[invalid query]\n");
-			is_invalid_query = true;
-		}	else if(!(strcmp(token_array[0], "or")) || !(strcmp(token_array[0], "and")) || !(strcmp(token_array[token_array_size - 1], "or")) || !(strcmp(token_array[token_array_size - 1], "and"))) {
-			if(!(is_invalid_query))
-				printf("[invalid query]\n");
+		if(!(strcmp(token_array[0], "or")) || !(strcmp(token_array[0], "and")) || !(strcmp(token_array[token_array_size - 1], "or")) || !(strcmp(token_array[token_array_size - 1], "and"))) {
+			printf("[invalid query]\n");
 			is_invalid_query = true;
 		}
-		
-		// processing tokens to produce output 
+
+		// processing tokens to produce output
 		if(!is_invalid_query) {
-			big_box = process_query_tokens(token_array_size, token_array, index, quiet, input); 
+			big_box = process_query_tokens(token_array_size, token_array, index);
+
 		}
-		
 		if (big_box != NULL) {
-			qapply(big_box, freeDocument); 
+			qapply(big_box, freeDocument);
 			qclose(big_box);
-			big_box = NULL;
 		}
 	}
 	happly(index, freeindexentry);
 	hclose(index);
 	return 0;
 
-	}
+}
