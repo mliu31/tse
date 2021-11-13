@@ -13,11 +13,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "queue.h"
- 
+#include "lqueue.h"
+
+/*
 typedef struct locked_queue {
 	queue_t* queue;
 	pthread_mutex_t* mutex;
 } lqueue_t;
+*/
 
 lqueue_t* lqopen() {
 	pthread_mutex_t *m;
@@ -36,6 +39,7 @@ lqueue_t* lqopen() {
 	
 }
 
+
 void lqclose(lqueue_t *lqp) {
 
 	qclose(lqp->queue);
@@ -44,6 +48,7 @@ void lqclose(lqueue_t *lqp) {
 	free(lqp);
 	
 }
+
 
 int32_t lqput(lqueue_t *lqp, void *elementp) {
 	pthread_mutex_lock(lqp->mutex);
@@ -54,6 +59,7 @@ int32_t lqput(lqueue_t *lqp, void *elementp) {
 	return output;
 }
 
+
 void* lqget(lqueue_t *lqp) {
 	pthread_mutex_lock(lqp->mutex);
 
@@ -63,6 +69,7 @@ void* lqget(lqueue_t *lqp) {
 	return result;
 }
 
+
 void lqapply(lqueue_t *lqp, void (*fn)(void* elementp)) {
 	pthread_mutex_lock(lqp->mutex);
 
@@ -70,6 +77,7 @@ void lqapply(lqueue_t *lqp, void (*fn)(void* elementp)) {
 
 	pthread_mutex_unlock(lqp->mutex);
 }
+
 
 void* lqsearch(lqueue_t *lqp, bool (*searchfn)(void* elementp,const void* keyp), const void* skeyp) {
 	pthread_mutex_lock(lqp->mutex);

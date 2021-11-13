@@ -8,7 +8,12 @@
 #include "queue.h"
 
 /* the queue representation is hidden from users of the module */
-typedef void lqueue_t;		
+/* defining locked queue type */ 
+typedef void locked_queue {
+	queue_t *queue;
+	pthread_mutex_t *mutex;
+} lqueue_t; 
+	
 
 /* create an empty queue */
 lqueue_t* lqopen(void);        
