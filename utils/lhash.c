@@ -18,16 +18,18 @@ lht_t* lhopen(uint32_t hsize) {
 	lht_t *lht;
 
 	lht = (lht_t*)malloc(sizeof(lht_t));
-	lht = hopen(20);
+	lht->hashtable = hopen(hsize);
 	m = (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t));
 	pthread_mutex_init(m, NULL);
+
+	lht->mutex = m;
 
 	return lht; 
 }
 
 /* hclose -- closes a hash table */
 void lhclose(lht_t *lhtp) {
-	hclose(lhtp);
+	hclose(lhtp->hashtable);
 	pthread_mutex_destroy(lhtp->mutex);
 	free(lhtp->mutex);
 	free(lhtp); 
