@@ -42,15 +42,24 @@ void* threadProcessPut(void* locked_queue) {
 	return 0; 
 	*/
 	pthread_mutex_lock(lq->mutex);
+	printf("entered threada1 func\n"); 
 	sleep(5);
-	pthread_mutex_unlock(lq->mutex); 
+	printf("exited threada1 func\n"); 
+	pthread_mutex_unlock(lq->mutex);
+
 	return 0; 
 }
 
 void* threadProcessGet(void* locked_queue) {
 	lqueue_t *lq = (lqueue_t*) locked_queue;
-	lqget(lq); 
-	printf("thread two finished*************\n"); 
+	// lqget(lq);
+
+	pthread_mutex_lock(lq->mutex);
+	printf("entered thread2 func\n"); 
+	sleep(2);
+	printf("exited thread2 func\n"); 
+	pthread_mutex_unlock(lq->mutex); 
+
 	return 0; 
 }
 
@@ -59,16 +68,15 @@ int main() {
 	pthread_t tid1, tid2;
 	lqueue_t* lqp = lqopen();
 	
-	
-	if(pthread_create(&tid1, NULL, threadProcessPut, lqp) != 0) {
-		printf("thread 1 failed to create"); 
-		exit(EXIT_FAILURE);
-	}
 	if(pthread_create(&tid2, NULL, threadProcessGet, lqp) != 0) {
 		printf("thread 2 failed to create"); 
 		exit(EXIT_FAILURE);
 	}
-
+	if(pthread_create(&tid1, NULL, threadProcessPut, lqp) != 0) {
+		printf("thread 1 failed to create"); 
+		exit(EXIT_FAILURE);
+	}
+	
 	printf("Creations finished\n");
 
 	if(pthread_join(tid1,NULL) != 0)

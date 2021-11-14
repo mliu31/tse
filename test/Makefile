@@ -14,5 +14,5 @@ lqueue_test3:  lqueue_test3.c
 			 	gcc $(CFLAGS) $^ $(LIBS) -o $@ -lpthread
 
 clean:
-				rm -f lqueue_test lqueue_test2
+				rm -f lqueue_test lqueue_test2 lqueue_test3
 
