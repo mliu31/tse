@@ -5,7 +5,7 @@
  * Created: Thu Nov 11 11:21:22 2021 (-0500)
  * Version: 1
  * 
- * Description: Testing lqueue
+ * Description: Testing lqueue -- no threads
  * 
  */
 
@@ -14,11 +14,13 @@
 #include <pthread.h>
 #include "lqueue.h"
 
+
 void printe(void* elem) {
   int* element = (int*)elem;
 
-	printf("%d\n", *element);
+	printf("%d-->", *element);
 }
+
 
 bool searchfn(void* elem, const void* key) {
 
@@ -56,10 +58,12 @@ int main() {
 
 	lqput(lqp, x);
 
+	printf("locked queue: "); 
 	lqapply(lqp, printe);
 
 	int *y = lqget(lqp);
-
+	printf("\nremoved from locked queue: %d\n", *y);
+	
 	if(*y != 100)
 		printf("qget not working\n");
 

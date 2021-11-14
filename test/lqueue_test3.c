@@ -1,16 +1,17 @@
-/* lqueue_test2.c --- 
+/* lqueue_test3.c --- 
  * 
  * 
  * Author: Alejandro A. Lopez Cochachi
  * Created: Thu Nov 11 11:21:22 2021 (-0500)
  * Version: 1
  * 
- * Description: Testing lqueue -- uniprocessor (one thread) 
+ * Description: Testing lqueue -- multiprocessor (2 threads) 
  * 
  */
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <pthread.h>
 #include "lqueue.h"
 
@@ -32,37 +33,50 @@ bool searchfn(void* elem, const void* key) {
 }
 
 
-void* modifyQueue(void *lq) {
-	lqueue_t* lqueue = (lqueue_t*) lq;  
+void* threadProcessPut(void* locked_queue) {
+	
+	lqueue_t *lq = (lqueue_t*) locked_queue;
+	/*										 
+	if (lqput(lq, 3) != 0)
+		return -1; 
+	return 0; 
+	*/
+	pthread_mutex_lock(lq->mutex);
+	sleep(5);
+	pthread_mutex_unlock(lq->mutex); 
+	return 0; 
+}
 
-	return lqueue; 
+void* threadProcessGet(void* locked_queue) {
+	lqueue_t *lq = (lqueue_t*) locked_queue;
+	lqget(lq); 
+	printf("thread two finished*************\n"); 
+	return 0; 
 }
 
 
 int main() {
-	pthread_t tid1; // tid2;
-	lqueue_t* lqp;
-
-	if(pthread_create(&tid1, NULL, modifyQueue, NULL) != 0) {
+	pthread_t tid1, tid2;
+	lqueue_t* lqp = lqopen();
+	
+	
+	if(pthread_create(&tid1, NULL, threadProcessPut, lqp) != 0) {
 		printf("thread 1 failed to create"); 
 		exit(EXIT_FAILURE);
 	}
-	/*
-	if(pthread_create(&tid2, NULL, modifyQueue, NULL) != 0) {
+	if(pthread_create(&tid2, NULL, threadProcessGet, lqp) != 0) {
 		printf("thread 2 failed to create"); 
 		exit(EXIT_FAILURE);
 	}
-	*/
 
 	printf("Creations finished\n");
 
 	if(pthread_join(tid1,NULL) != 0)
 	  exit(EXIT_FAILURE);
-	/*
 	if(pthread_join(tid2,NULL) != 0)
 		exit(EXIT_FAILURE);
-	*/
-		
+	
+	/* 
 	lqp = lqopen();
 
 	int *x = (int*)malloc(sizeof(int));
@@ -86,8 +100,10 @@ int main() {
 		exit(EXIT_FAILURE);
 	}
 
+	*/
+	
 	lqclose(lqp);
-	free(x);
+	//	free(x);
 	
 	exit(EXIT_SUCCESS);
 }

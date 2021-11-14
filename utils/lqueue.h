@@ -9,7 +9,7 @@
 
 /* the queue representation is hidden from users of the module */
 /* defining locked queue type */ 
-typedef void locked_queue {
+typedef struct locked_queue {
 	queue_t *queue;
 	pthread_mutex_t *mutex;
 } lqueue_t; 
