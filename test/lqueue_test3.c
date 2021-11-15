@@ -77,7 +77,7 @@ int main() {
 		exit(EXIT_FAILURE);
 	}
 	
-	printf("Creations finished\n");
+	printf("thread 1&2 creations finished\n");
 
 	if(pthread_join(tid1,NULL) != 0)
 	  exit(EXIT_FAILURE);

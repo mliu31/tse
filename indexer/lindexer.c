@@ -1,4 +1,4 @@
-/* indexer.c --- 
+/* lindexer.c --- 
  * 
  * 
  * Author: Agon Hoxha
@@ -22,19 +22,9 @@
 
 
 int sum = 0;
-
-/*
-typedef struct index_entry_t {
-	char *word;
-	queue_t *word_queue_p; 
-} idxe_t;
-
-
-typedef struct word_queue_entry_t {
-	int doc_id;
-	int doc_word_freq;
-} wqe_t;
-*/
+hashtable_t *hashtable;
+webpage_t *loadedpage; 
+char *pagedirectory; 
 
 static wqe_t* makeQueueEntry(int id) {
 	wqe_t* queue_entry = (wqe_t*)calloc(1, sizeof(wqe_t));
@@ -62,25 +52,6 @@ static void incrementDocumentFreq(wqe_t *document) {
 	document->doc_word_freq = (document->doc_word_freq) + 1;
 }
 
-/*void incrementindexentry(idxe_t *indexentry) {
-	indexentry->freq = (indexentry->freq) + 1;
-	}
-
-
-static void printDocument(void *document) {
-	wqe_t *document_el = (wqe_t*)(document);
-	printf("id: %d, freq: %d\n", document_el->doc_id, document_el->doc_word_freq);
-}
-
-
-static void printindexentry(void *indexentry) {
-	idxe_t *index_e = (idxe_t*)(indexentry);
-	printf("**********\n");
-	printf("word: %s\n", index_e->word);
-	qapply(index_e->word_queue_p, printDocument);
-	printf("**********\n");
-}
-*/
 
 static void freeDocument(void *document) {
 	wqe_t *document_el = (wqe_t*)(document);
@@ -98,22 +69,7 @@ static void freeindexentry(void *indexentry) {
 	free(index_e);
 }
 
-/*
-static void sumDocumentFrequencies(void *document) {
-	wqe_t *document_el = (wqe_t*)(document);
-	int *sum_freq_p = &sum;
-	
-	*sum_freq_p = *sum_freq_p + document_el->doc_word_freq;
-}
 
-
-static void sumofindexentries(void *indexentry) {
-	idxe_t *index_e = (idxe_t*)(indexentry);
-
-	qapply(index_e->word_queue_p, sumDocumentFrequencies);
-}
-
-*/
 static int NormalizeWord(char **wordptr) {
 	char *word = *wordptr;
 	int i = 0;
@@ -158,9 +114,15 @@ static bool search_queue(void* elementp, const void* searchkeyp) {
 
 
 // reads through documents word-by-word
-void* read_document_wbw(webpage_t *loadedpage, char* word, hashtable_t *hashtable, int *id, char* pagedirectory) {
+void* read_document_wbw(void *docID) {
+	int pos = 0;
+	char *word;
+
+	int *id = (int*) docID; 
+	printf("id: %d\n", *id); 
+	
 	while(true) {
-		int pos = webpage_getNextWord(loadedpage, pos, &word);
+		pos = webpage_getNextWord(loadedpage, pos, &word);
 
 		if(pos == -1) 
 			break;
@@ -201,36 +163,33 @@ void* read_document_wbw(webpage_t *loadedpage, char* word, hashtable_t *hashtabl
 }
 
 int main(int argc, char *argv[]) {
-	webpage_t *loadedpage;
-	hashtable_t *hashtable;
-	//wqe_t *document;
-	//idxe_t *indexentry;
-	char *word;
-	// int pos;
-	int* id; 
-	// char *endid;
-	char *pagedirectory;
+	int* docID; 
 	char *indexnm;
+	
 	int num_threads = 2;
 	pthread_t *threads[num_threads]; 
 
-	
+	if(argc != 3) { 
+		printf("usage: lindexer <pagedir> <indexfilenm>\n"); 
+		return -1;
+	}
 	pagedirectory = argv[1];
 	indexnm = argv[2];
-	*id = 1; 
-	
+	docID = (int*)malloc(sizeof(int*)); 
+	*docID = 1; 
+
+	//printf("id: %d\n", *docID);
+	//printf("pagedirectory: %s\n", pagedirectory); 
 	hashtable = hopen(20);
 
-	loadedpage = pageload(*id, pagedirectory);
-	printf("loaded first page\n");
+	loadedpage = pageload(*docID, pagedirectory);
+	//printf("loaded first page\n");
 	
-	while(true) {
-
-		int pos = 0;
+	while(true) { // loop thru all docs in pagedirectory
 
 		for(int tid=0; tid<num_threads; tid++) { 
-			
-			if(pthread_create(threads[tid], NULL, read_document_wbw, loadedpage, word, hashtable, id, pagedirectory)) {
+			// add all words in a doc to indexer
+			if(pthread_create(threads[tid], NULL, read_document_wbw, docID)) {
 				printf("thread %d failed to create\n", tid);
 				exit(EXIT_FAILURE);
 			}
@@ -238,7 +197,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	for(int tid=0; tid<num_threads; tid++) {
-		if(pthread_join(&tid, NULL) != 0)
+		if(pthread_join((*(threads[tid])), NULL) != 0)
 			exit(EXIT_FAILURE);
 	}
 	

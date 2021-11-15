@@ -54,7 +54,7 @@ int main() {
 	}
 	*/
 
-	printf("Creations finished\n");
+	printf("thread creations finished\n");
 
 	if(pthread_join(tid1,NULL) != 0)
 	  exit(EXIT_FAILURE);
