@@ -170,13 +170,12 @@ void* read_document_wbw(void *threadID) {
 			webpage_delete(loadedpage);
 			
 			pthread_mutex_lock(hashtable->mutex);
-			(tid->page_id)++;
-			pthread_mutex_unlock(hashtable->mutex);
-			
+			(tid->page_id)++;			
 			loadedpage = pageload(id, pagedirectory);
-			if(loadedpage == NULL) {
+			pthread_mutex_unlock(hashtable->mutex);
+
+			if(loadedpage == NULL) 
 				break;
-			}
 			
 	}
 	return 0; 
@@ -224,6 +223,5 @@ int main(int argc, char *argv[]) {
 	lhapply(threadID->hashtable, freeindexentry);
 	lhclose(threadID->hashtable);
 	free(threadID); 
-	
 	return 0;	
 }
