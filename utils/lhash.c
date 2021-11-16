@@ -41,7 +41,7 @@ void lhclose(lht_t *lhtp) {
 int32_t lhput(lht_t *lhtp, void *ep, const char *key, int keylen) {
 	pthread_mutex_lock(lhtp->mutex);
 
-	int32_t output = hput(lhtp->hashtable, ep, key, sizeof(ep));
+	int32_t output = hput(lhtp->hashtable, ep, key, keylen); 
 
 	pthread_mutex_unlock(lhtp->mutex);
 	return output; 

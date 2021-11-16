@@ -15,6 +15,8 @@
 #include "hash.h"
 #include "pageio.h"
 #include "indexio.h"
+#include "lhash.h"
+
 
 FILE *file;
 
@@ -57,6 +59,15 @@ void indexsave(hashtable_t *index, char *filepath) {
 	
 	fclose(file);
 }
+
+void lindexsave(lht_t *lindex, char *filepath) { 
+	file = fopen(filepath, "w+");
+	
+	lhapply(lindex, printindexentry); 
+	
+	fclose(file);
+
+} 
 
 
 hashtable_t* indexload(char *filepath) {

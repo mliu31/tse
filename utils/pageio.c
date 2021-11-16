@@ -57,6 +57,7 @@ webpage_t* pageload(int id, char *dirnm) {
 	strcpy(filepath, dirnm);
 	
 	if((access(strcat(filepath, filename), R_OK & F_OK) != 0)) {
+		
 		return NULL;
 	}
 	

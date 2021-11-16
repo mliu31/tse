@@ -12,7 +12,8 @@ typedef struct locked_hashtable {
 	hashtable_t *hashtable;
 	pthread_mutex_t *mutex;	
 } lht_t; 
-	
+
+
 /* hopen -- opens a hash table with initial size hsize */
 lht_t* lhopen(uint32_t hsize);
 
